@@ -67,7 +67,6 @@
     var prefs = $('#consentPrefs'), btnSave = $('[data-consent="save"]', banner), btnCustom = $('[data-consent="custom"]', banner);
     var openBanner = function (custom) {
       $('#cStats').checked = consent ? consent.stats : true;
-      $('#cFb').checked = consent ? consent.fb : false;
       prefs.classList.toggle('hidden', !custom);
       btnSave.classList.toggle('hidden', !custom);
       btnCustom.classList.toggle('hidden', !!custom);
@@ -81,7 +80,7 @@
       if (act === 'accept') { setConsent(true, true); closeBanner(); }
       else if (act === 'refuse') { setConsent(false, false); closeBanner(); }
       else if (act === 'custom') { openBanner(true); $('#cStats').focus(); }
-      else if (act === 'save') { setConsent($('#cStats').checked, $('#cFb').checked); closeBanner(); }
+      else if (act === 'save') { setConsent($('#cStats').checked, false); closeBanner(); }
     });
     document.addEventListener('click', function (e) {
       if (e.target.closest('[data-consent-open]')) { e.preventDefault(); openBanner(true); }

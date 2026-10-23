@@ -297,7 +297,7 @@ function footer() {
 <div id="consent" class="hidden fixed z-50 inset-x-3 bottom-3 sm:inset-x-auto sm:left-5 sm:bottom-5 sm:w-[420px] bg-white rounded-3xl shadow-2xl border border-forest/10" role="dialog" aria-modal="false" aria-labelledby="consent-title">
   <div class="p-6">
     <p id="consent-title" class="font-serif text-2xl text-forest font-semibold flex items-center gap-2">${ic('cookie', 'w-6 h-6 text-terra')} Vos données, votre choix</p>
-    <p class="mt-3 text-sm text-ink/75 leading-relaxed">Ce site mesure son audience de façon anonyme, <strong class="text-forest">sans cookie</strong>, et peut afficher le fil d’actualité Facebook, qui lui dépose des cookies. Vous pouvez changer d’avis à tout moment via « Gérer les cookies » en bas de page. <a href="/confidentialite/" class="text-terra underline underline-offset-2">En savoir plus</a></p>
+    <p class="mt-3 text-sm text-ink/75 leading-relaxed">Ce site mesure son audience de façon anonyme, <strong class="text-forest">sans cookie</strong> ni adresse IP, et ne dépose aucun cookie publicitaire. Vous pouvez accepter ou refuser cette mesure, et changer d’avis à tout moment via « Gérer les cookies » en bas de page. <a href="/confidentialite/" class="text-terra underline underline-offset-2">En savoir plus</a></p>
     <div id="consentPrefs" class="hidden mt-4 space-y-3">
       <div class="flex items-start justify-between gap-4 rounded-xl bg-cream p-3">
         <div><p class="text-sm font-semibold text-forest">Fonctionnement du site</p><p class="text-xs text-ink/60">Mémorise vos choix. Toujours actif.</p></div>
@@ -306,10 +306,6 @@ function footer() {
       <label class="flex items-start justify-between gap-4 rounded-xl bg-cream p-3 cursor-pointer">
         <span><span class="block text-sm font-semibold text-forest">Mesure d’audience</span><span class="block text-xs text-ink/60">Statistiques anonymes, sans cookie ni adresse IP.</span></span>
         <input type="checkbox" id="cStats" class="mt-1 w-5 h-5 accent-[#1F3A2E] shrink-0">
-      </label>
-      <label class="flex items-start justify-between gap-4 rounded-xl bg-cream p-3 cursor-pointer">
-        <span><span class="block text-sm font-semibold text-forest">Contenus Facebook</span><span class="block text-xs text-ink/60">Affichage du fil d’actualité. Facebook dépose des cookies.</span></span>
-        <input type="checkbox" id="cFb" class="mt-1 w-5 h-5 accent-[#1F3A2E] shrink-0">
       </label>
     </div>
     <div class="mt-5 grid grid-cols-2 gap-2">
@@ -379,21 +375,24 @@ const personLd = () => ({
 
 const socialSection = () => {
   const fb = SITE.social.facebook;
-  const right = fb ? `
-      <div id="fbFeed" data-href="${esc(fb)}" class="mx-auto w-full max-w-[500px] rounded-3xl overflow-hidden bg-white shadow-soft min-h-[300px] flex items-center justify-center">
-        <div class="fb-placeholder p-8 sm:p-10 text-center">
-          <span class="w-16 h-16 mx-auto rounded-full bg-terra-soft text-terra flex items-center justify-center">${ic('facebook', 'w-8 h-8')}</span>
-          <p class="font-serif text-2xl text-forest font-semibold mt-5">Les dernières publications</p>
-          <p class="text-sm text-ink/65 mt-3 leading-relaxed max-w-sm mx-auto">Ce fil d’actualité est fourni par Facebook. En l’affichant, vous acceptez que Facebook dépose des cookies sur votre navigateur.</p>
-          <button type="button" id="fbLoad" class="btn-primary mt-6">Afficher les publications</button>
-          <p class="mt-4 text-xs text-ink/55"><a href="/confidentialite/" class="underline underline-offset-2 hover:text-terra">En savoir plus sur vos données</a></p>
+  const nets = [
+    ['facebook', 'Facebook', fb, 'Élméa Solutions'],
+    ['instagram', 'Instagram', SITE.social.instagram, SITE.social.instagramHandle],
+    ['linkedin', 'LinkedIn', SITE.social.linkedin, 'Manon Samain']
+  ].filter(([, , u]) => u);
+  const right = `
+      <div class="mx-auto w-full max-w-[460px] rounded-3xl bg-white shadow-soft p-8 sm:p-10">
+        <div class="flex items-center gap-4">
+          <img src="/assets/img/logo-mark.png" alt="" width="64" height="64" class="w-16 h-16 rounded-full bg-cream p-1">
+          <div><p class="font-serif text-2xl text-forest font-semibold leading-tight">${SITE.name}</p><p class="text-sm text-ink/60">Gestion administrative externalisée</p></div>
         </div>
-      </div>` : `
-      <div class="mx-auto w-full max-w-[460px] rounded-3xl bg-white shadow-soft p-10 text-center">
-        <img src="/assets/img/logo-mark.png" alt="" width="96" height="96" class="w-24 h-24 mx-auto" loading="lazy">
-        <p class="font-serif text-2xl text-forest font-semibold mt-5">${SITE.social.instagramHandle}</p>
-        <p class="text-sm text-ink/65 mt-2">Conseils, coulisses et actualités administratives.</p>
-        <a href="${SITE.social.instagram}" target="_blank" rel="noopener" class="btn-primary mt-6">${ic('instagram', 'w-5 h-5')} Voir le compte</a>
+        <ul class="mt-7 space-y-3">
+          ${nets.map(([i, n, u, h]) => `<li><a href="${esc(u)}" target="_blank" rel="noopener" class="group flex items-center gap-4 rounded-2xl border border-forest/10 p-4 hover:border-terra hover:bg-terra-soft/40 transition">
+            <span class="w-11 h-11 rounded-full bg-forest text-cream flex items-center justify-center shrink-0 group-hover:bg-terra transition">${ic(i, 'w-5 h-5')}</span>
+            <span class="min-w-0 flex-1"><span class="block font-semibold text-forest">${n}</span><span class="block text-sm text-ink/60 truncate">${esc(h)}</span></span>
+            ${ic('arrow-up-right', 'w-5 h-5 text-ink/40 group-hover:text-terra shrink-0')}
+          </a></li>`).join('\n          ')}
+        </ul>
       </div>`;
   return `
 <section class="bg-white/60 py-20" aria-labelledby="social-title">
@@ -402,10 +401,6 @@ const socialSection = () => {
       <p class="eyebrow">Réseaux sociaux</p>
       <h2 id="social-title" class="h-section mt-3">Suivez l’actualité d’Élméa</h2>
       <p class="mt-5 text-ink/75 leading-relaxed">Conseils pratiques, astuces d’organisation, nouveautés réglementaires et coulisses du métier : retrouvez-moi sur les réseaux sociaux.</p>
-      <div class="mt-8 flex flex-col sm:flex-row gap-3">
-        ${fb ? `<a href="${esc(fb)}" target="_blank" rel="noopener" class="btn-primary">${ic('facebook')} Suivre sur Facebook</a>` : ''}
-        <a href="${SITE.social.instagram}" target="_blank" rel="noopener" class="btn-outline">${ic('instagram')} ${SITE.social.instagramHandle}</a>
-      </div>
     </div>
     <div class="reveal">${right}
     </div>
@@ -994,10 +989,9 @@ legalPage('/confidentialite/', 'Politique de confidentialité', 'Politique de co
 <h2>Mesure d’audience</h2>
 <p>Ce site utilise une mesure d’audience interne, <strong>sans cookie</strong> et anonyme : pages consultées, site de provenance, type d’appareil et pays. Votre adresse IP n’est jamais enregistrée ; un identifiant technique non réversible, renouvelé chaque jour, permet seulement de compter les visites. Ces statistiques ne sont ni partagées ni croisées avec d’autres données, et sont supprimées au bout de 13 mois.</p>
 <h2>Cookies et contenus tiers</h2>
-<p>Ce site ne dépose aucun cookie publicitaire. Les polices de caractères sont hébergées sur le site lui-même. ${ANY_REMOTE ? 'Certaines images d’illustration sont chargées depuis le service Unsplash, qui peut recevoir votre adresse IP lors de leur affichage.' : 'Les images sont également hébergées sur le site : aucune donnée n’est transmise à un service tiers lors de votre navigation, sauf si vous choisissez d’afficher le fil Facebook.'}</p>
-<p>Le fil d’actualité Facebook de la page d’accueil n’est chargé que si vous cliquez sur « Afficher les publications ». Facebook (Meta Platforms Ireland Ltd.) peut alors déposer des cookies et collecter des données selon sa propre <a href="https://www.facebook.com/privacy/policy/" target="_blank" rel="noopener">politique de confidentialité</a>. Votre choix est mémorisé sur votre appareil pendant 6 mois.</p>
-<h2>Gérer vos choix</h2>
-<p>Lors de votre première visite, un bandeau vous permet d’accepter ou de refuser la mesure d’audience et les contenus Facebook, aussi simplement l’un que l’autre. Vous pouvez modifier vos choix à tout moment :</p>
+<p>Ce site ne dépose aucun cookie publicitaire. Les polices de caractères sont hébergées sur le site lui-même. ${ANY_REMOTE ? 'Certaines images d’illustration sont chargées depuis le service Unsplash, qui peut recevoir votre adresse IP lors de leur affichage.' : 'Les images sont également hébergées sur le site : aucune donnée n’est transmise à un service tiers lors de votre navigation.'}</p>
+<p>Les liens vers Facebook, Instagram et LinkedIn sont de simples liens : aucun contenu de ces réseaux n’est chargé sur le site. Votre choix concernant la mesure d’audience est mémorisé sur votre appareil pendant 6 mois.</p><h2>Gérer vos choix</h2>
+<p>Lors de votre première visite, un bandeau vous permet d’accepter ou de refuser la mesure d’audience, aussi simplement l’un que l’autre. Vous pouvez modifier vos choix à tout moment :</p>
 <p><button type="button" data-consent-open class="btn-primary">Gérer les cookies</button></p>
 <p>Vos préférences sont enregistrées uniquement dans votre navigateur (stockage local), sans cookie.</p>
 <h2>Vos droits</h2>
@@ -1113,7 +1107,7 @@ const formOrigin = SITE.form.endpoint ? new URL(SITE.form.endpoint).origin : '';
 const CSP = [
   "default-src 'self'", "script-src 'self'", "style-src 'self' 'unsafe-inline'",
   `img-src 'self' data: blob:${ANY_REMOTE ? ' https://images.unsplash.com' : ''}`, "font-src 'self'",
-  `connect-src 'self'${formOrigin ? ' ' + formOrigin : ''}`, 'frame-src https://www.facebook.com',
+  `connect-src 'self'${formOrigin ? ' ' + formOrigin : ''}`, "frame-src 'none'",
   `form-action 'self' mailto:${formOrigin ? ' ' + formOrigin : ''}`, "base-uri 'self'", "object-src 'none'",
   "frame-ancestors 'none'", 'upgrade-insecure-requests'
 ].join('; ');
