@@ -69,7 +69,7 @@ npx wrangler pages dev dist --d1 DB=elmea-db   # site + fonctions + base D1 loca
 - IndexNow : chaque article publié depuis l'admin est signalé instantanément à Bing (index utilisé par ChatGPT).
 
 ## ✅ À faire avant la mise en ligne
-1. **Domaine** : variable `SITE_URL` dans Cloudflare (Paramètres → Variables et secrets), ex. `https://www.elmea-solutions.fr`, puis redéployer.
+1. **Domaine** : https://elmea-solutions.com (dans `src/config.mjs`, la variable Cloudflare `SITE_URL` peut le remplacer).
 2. **Facebook** : `SITE.social.facebook` dans `src/config.mjs` → affiche le fil de la page sur l'accueil (chargé seulement après clic du visiteur, RGPD).
 3. **Formulaire** : clé gratuite [web3forms.com](https://web3forms.com) → `form: { endpoint: 'https://api.web3forms.com/submit', accessKey: 'LA_CLÉ' }`.
 4. **Mentions légales** : SIRET, adresse, régime de TVA dans `SITE.legal`.

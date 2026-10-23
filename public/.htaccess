@@ -10,9 +10,9 @@ ErrorDocument 404 /404.html
   # Forcer HTTPS
   RewriteCond %{HTTPS} off
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-  # Forcer www (supprimer ce bloc si le domaine final est sans www)
-  RewriteCond %{HTTP_HOST} !^www\. [NC]
-  RewriteRule ^ https://www.%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+  # Adresse sans www (elmea-solutions.com)
+  RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+  RewriteRule ^ https://%1%{REQUEST_URI} [L,R=301]
   # Ajouter le / final aux dossiers
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_URI} !/$

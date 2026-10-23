@@ -7,7 +7,7 @@ export const SITE = {
   /* Adresse officielle du site (canonical, sitemap, Google, IA).
      Avec un nom de domaine : ajouter la variable SITE_URL dans Cloudflare
      (ex. https://www.elmea-solutions.fr) – elle remplace cette valeur au build. */
-  url: 'https://elmea.pages.dev',
+  url: 'https://elmea-solutions.com',
   owner: 'Manon Samain',
   role: 'Gestionnaire administrative externalisée',
   phone: '06 32 24 63 11',
