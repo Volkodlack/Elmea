@@ -34,13 +34,64 @@
     reveals.forEach(function (el) { el.classList.add('in'); });
   }
 
+  /* ---------- Consentement (RGPD) ----------
+     Choix stocké 6 mois dans le navigateur (localStorage, pas de cookie).
+     stats : mesure d'audience anonyme (exemptée de consentement par la CNIL,
+             mais le visiteur peut la refuser) – active tant qu'elle n'est pas refusée.
+     fb    : fil Facebook (dépose des cookies tiers) – uniquement sur accord. */
+  var CONSENT_KEY = 'elmea_consent', CONSENT_MAX = 182 * 86400000;
+  var getConsent = function () {
+    try {
+      var c = JSON.parse(localStorage.getItem(CONSENT_KEY) || 'null');
+      if (c && c.ts && Date.now() - c.ts < CONSENT_MAX) return c;
+    } catch (e) {}
+    return null;
+  };
+  var consent = getConsent();
+  var onConsent = [];
+  var setConsent = function (stats, fbOk) {
+    consent = { stats: !!stats, fb: !!fbOk, ts: Date.now() };
+    try { localStorage.setItem(CONSENT_KEY, JSON.stringify(consent)); } catch (e) {}
+    onConsent.forEach(function (f) { f(consent); });
+  };
+
+  var banner = $('#consent');
+  if (banner) {
+    var prefs = $('#consentPrefs'), btnSave = $('[data-consent="save"]', banner), btnCustom = $('[data-consent="custom"]', banner);
+    var openBanner = function (custom) {
+      $('#cStats').checked = consent ? consent.stats : true;
+      $('#cFb').checked = consent ? consent.fb : false;
+      prefs.classList.toggle('hidden', !custom);
+      btnSave.classList.toggle('hidden', !custom);
+      btnCustom.classList.toggle('hidden', !!custom);
+      banner.classList.remove('hidden');
+    };
+    var closeBanner = function () { banner.classList.add('hidden'); };
+    banner.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-consent]');
+      if (!b) return;
+      var act = b.getAttribute('data-consent');
+      if (act === 'accept') { setConsent(true, true); closeBanner(); }
+      else if (act === 'refuse') { setConsent(false, false); closeBanner(); }
+      else if (act === 'custom') { openBanner(true); $('#cStats').focus(); }
+      else if (act === 'save') { setConsent($('#cStats').checked, $('#cFb').checked); closeBanner(); }
+    });
+    document.addEventListener('click', function (e) {
+      if (e.target.closest('[data-consent-open]')) { e.preventDefault(); openBanner(true); }
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !banner.classList.contains('hidden') && consent) closeBanner(); });
+    if (!consent && location.pathname.indexOf('/admin') !== 0) openBanner(false);
+  }
+
   /* ---------- Mesure d'audience (interne, sans cookie) ---------- */
   var send = function () {};
   (function () {
     var off = false;
     try { off = localStorage.getItem('elmea_notrack') === '1'; } catch (e) {}
     if (off || location.pathname.indexOf('/admin') === 0 || location.protocol === 'file:') return;
+    var allowed = function () { return !consent || consent.stats; };
     send = function (o) {
+      if (!allowed()) return;
       var body = JSON.stringify(o);
       try {
         if (navigator.sendBeacon && navigator.sendBeacon('/api/track', body)) return;
@@ -65,6 +116,7 @@
   /* ---------- Fil Facebook (chargé uniquement avec l'accord du visiteur) ---------- */
   var fb = $('#fbFeed');
   if (fb) {
+    var placeholder = fb.innerHTML;
     var loadFb = function () {
       if (fb.getAttribute('data-loaded')) return;
       fb.setAttribute('data-loaded', '1');
@@ -78,19 +130,51 @@
       f.setAttribute('scrolling', 'no'); f.setAttribute('allow', 'encrypted-media; clipboard-write; web-share'); f.loading = 'lazy';
       fb.appendChild(f);
     };
-    var btnFb = $('#fbLoad');
-    if (btnFb) btnFb.addEventListener('click', function () {
-      try { localStorage.setItem('elmea_fb', '1'); } catch (e) {}
-      loadFb();
+    var unloadFb = function () {
+      if (!fb.getAttribute('data-loaded')) return;
+      fb.removeAttribute('data-loaded');
+      fb.innerHTML = placeholder;
+    };
+    fb.addEventListener('click', function (e) {
+      if (!e.target.closest('#fbLoad')) return;
+      setConsent(consent ? consent.stats : true, true);
+      if (banner) banner.classList.add('hidden');
     });
-    var ok = false;
-    try { ok = localStorage.getItem('elmea_fb') === '1'; } catch (e) {}
-    if (ok) {
+    var whenVisible = function () {
       if ('IntersectionObserver' in window) {
         var fio = new IntersectionObserver(function (en) { if (en[0].isIntersecting) { fio.disconnect(); loadFb(); } }, { rootMargin: '300px' });
         fio.observe(fb);
       } else loadFb();
-    }
+    };
+    onConsent.push(function (c) { if (c.fb) loadFb(); else unloadFb(); });
+    if (consent && consent.fb) whenVisible();
+  }
+
+  /* ---------- Composez votre formule ---------- */
+  var composer = $('#composer');
+  if (composer) {
+    var boxes = $$('input[type=checkbox]', composer), cta = $('#composerCta'), countEl = $('#composerCount');
+    var base = cta.getAttribute('href');
+    var update = function () {
+      var picked = boxes.filter(function (b) { return b.checked; });
+      var hasAo = picked.some(function (b) { return b.getAttribute('data-ao'); });
+      $('#aoVolume').classList.toggle('hidden', !hasAo);
+      boxes.forEach(function (b) {
+        var lab = b.parentNode;
+        $('.mission-plus', lab).classList.toggle('hidden', b.checked);
+        $('.mission-check', lab).classList.toggle('hidden', !b.checked);
+      });
+      countEl.textContent = picked.length
+        ? picked.length + ' mission' + (picked.length > 1 ? 's' : '') + ' sélectionnée' + (picked.length > 1 ? 's' : '') + ' : je vous propose un tarif adapté.'
+        : 'Aucune mission sélectionnée pour l’instant.';
+      var p = new URLSearchParams();
+      p.set('service', 'Autre / besoin sur mesure');
+      if (picked.length) p.set('missions', picked.map(function (b) { return b.value; }).join('|'));
+      if (hasAo) p.set('ao', $('#aoCount').value);
+      cta.setAttribute('href', picked.length ? '/contact/?' + p.toString() : base);
+    };
+    composer.addEventListener('change', update);
+    update();
   }
 
   /* ---------- Filtres du blog ---------- */
@@ -120,6 +204,15 @@
     if (svc) {
       var sel = $('#service');
       $$('option', sel).forEach(function (o) { if (o.value === svc) sel.value = svc; });
+    }
+    // Missions choisies dans « Composez votre formule »
+    var missions = (params.get('missions') || '').split('|').filter(Boolean).slice(0, 20);
+    if (missions.length && !form.elements.message.value) {
+      var ao = params.get('ao');
+      form.elements.message.value = 'Bonjour,\n\nJe souhaiterais un devis sur mesure pour les missions suivantes :\n' +
+        missions.map(function (m) { return '- ' + m; }).join('\n') +
+        (ao ? '\n\nAppels d’offres : ' + ao + '.' : '') +
+        '\n\nQuelques mots sur mon activité : ';
     }
 
     var validators = {

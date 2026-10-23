@@ -21,13 +21,20 @@ const FORFAITS = [
     note: '* Dossiers complexes ou supplémentaires : sur devis.' }
 ];
 
+/* Catalogue des missions pour l'outil « Composez votre formule » */
+const MISSIONS = [
+  { group: 'Ventes & facturation', icon: 'receipt-euro', items: ['Devis', 'Facturation', 'Tableau d’échéances', 'Relances clients', 'Suivi des règlements', 'Reporting mensuel'] },
+  { group: 'Administratif & RH', icon: 'folder-open', items: ['Gestion des mails', 'Gestion administrative courante', 'Assurances & mutuelles', 'Plannings salariés', 'Variables de paie', 'Réservations de déplacements'] },
+  { group: 'Appels d’offres', icon: 'file-text', ao: true, items: ['Veille & suivi des échéances', 'Montage du dossier (DC1, DC2…)', 'Mémoire technique', 'Suivi des réponses'] }
+];
+
 const FAQ = [
   { q: 'Qu’est-ce qu’une gestionnaire administrative externalisée ?',
     a: 'C’est une professionnelle indépendante qui prend en charge tout ou partie de votre administratif (facturation, relances, suivi RH, appels d’offres…) sans être salariée de votre entreprise. Vous recevez une facture mensuelle, sans charges sociales ni contrat de travail.' },
   { q: 'Intervenez-vous sur site ou uniquement à distance ?',
     a: 'Les deux. J’interviens sur site à Monteux, Carpentras, Avignon et alentours, et à distance partout en France grâce à des outils sécurisés de partage de documents.' },
   { q: 'Combien coûte l’externalisation de mon administratif ?',
-    a: 'Trois forfaits mensuels existent : Essentiel à 490 € HT, Sérénité à 790 € HT et Expert à 1 200 € HT. Ils sont modulables, et un devis sur mesure est possible pour les besoins ponctuels.' },
+    a: 'Les formules présentées (Essentiel 490 € HT, Sérénité 790 € HT, Expert 1 200 € HT par mois) sont des exemples indicatifs. Tout est modulable : vous ne gardez que les missions dont vous avez besoin – par exemple sans suivi RH, ou avec un seul dossier d’appel d’offres par mois – et le tarif est ajusté en conséquence sur devis. Des missions ponctuelles sont aussi possibles.' },
   { q: 'Mes données sont-elles en sécurité ?',
     a: 'La confidentialité est l’un de mes engagements fondamentaux. Vos documents, données clients et données salariés ne sont jamais partagés, et un engagement de confidentialité peut être signé dès le début de la collaboration.' },
   { q: 'Pouvez-vous répondre à un appel d’offres à ma place ?',
@@ -182,7 +189,7 @@ function footer() {
   <div class="border-t border-white/10">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col md:flex-row justify-between gap-3 text-xs text-cream/60">
       <p>© ${new Date().getFullYear()} ${SITE.name} – ${SITE.owner}. Tous droits réservés.</p>
-      <p class="flex flex-wrap gap-x-4 gap-y-1"><a href="/mentions-legales/" class="hover:text-cream">Mentions légales</a><a href="/confidentialite/" class="hover:text-cream">Politique de confidentialité</a><a href="/sitemap.xml" class="hover:text-cream">Plan du site</a></p>
+      <p class="flex flex-wrap gap-x-4 gap-y-1"><a href="/mentions-legales/" class="hover:text-cream">Mentions légales</a><a href="/confidentialite/" class="hover:text-cream">Politique de confidentialité</a><button type="button" data-consent-open class="hover:text-cream underline-offset-2">Gérer les cookies</button><a href="/sitemap.xml" class="hover:text-cream">Plan du site</a></p>
     </div>
   </div>
 </footer>
@@ -193,6 +200,32 @@ function footer() {
   <svg viewBox="0 0 32 32" class="w-8 h-8 fill-white" aria-hidden="true"><path d="M16.04 3C9 3 3.3 8.7 3.3 15.73c0 2.25.59 4.44 1.7 6.37L3.2 28.8l6.9-1.8a12.7 12.7 0 0 0 5.93 1.5h.01c7.03 0 12.74-5.7 12.74-12.73C28.78 8.7 23.07 3 16.04 3Zm0 23.3h-.01a10.6 10.6 0 0 1-5.39-1.48l-.39-.23-4.1 1.07 1.1-3.99-.25-.41a10.54 10.54 0 0 1-1.62-5.62c0-5.84 4.75-10.6 10.6-10.6 2.83 0 5.49 1.1 7.49 3.11a10.52 10.52 0 0 1 3.1 7.5c0 5.84-4.76 10.6-10.53 10.6Zm5.81-7.94c-.32-.16-1.88-.93-2.17-1.03-.29-.11-.5-.16-.71.16-.21.32-.82 1.03-1 1.24-.19.21-.37.24-.69.08-.32-.16-1.34-.5-2.56-1.58-.95-.85-1.58-1.89-1.77-2.21-.19-.32-.02-.49.14-.65.14-.14.32-.37.48-.56.16-.19.21-.32.32-.53.11-.21.05-.4-.03-.56-.08-.16-.71-1.71-.97-2.34-.26-.62-.52-.53-.71-.54h-.61c-.21 0-.56.08-.85.4-.29.32-1.11 1.09-1.11 2.65 0 1.56 1.14 3.07 1.3 3.28.16.21 2.24 3.42 5.43 4.8.76.33 1.35.52 1.81.67.76.24 1.45.21 2 .13.61-.09 1.88-.77 2.14-1.51.27-.74.27-1.38.19-1.51-.08-.13-.29-.21-.61-.37Z"/></svg>
   <span class="hidden sm:block absolute right-16 whitespace-nowrap bg-white text-forest text-sm px-3 py-2 rounded-lg shadow-soft opacity-0 group-hover:opacity-100 transition pointer-events-none">Une question ? Écrivez-moi !</span>
 </a>
+<div id="consent" class="hidden fixed z-50 inset-x-3 bottom-3 sm:inset-x-auto sm:left-5 sm:bottom-5 sm:w-[420px] bg-white rounded-3xl shadow-2xl border border-forest/10" role="dialog" aria-modal="false" aria-labelledby="consent-title">
+  <div class="p-6">
+    <p id="consent-title" class="font-serif text-2xl text-forest font-semibold flex items-center gap-2">${ic('cookie', 'w-6 h-6 text-terra')} Vos données, votre choix</p>
+    <p class="mt-3 text-sm text-ink/75 leading-relaxed">Ce site mesure son audience de façon anonyme, <strong class="text-forest">sans cookie</strong>, et peut afficher le fil d’actualité Facebook, qui lui dépose des cookies. Vous pouvez changer d’avis à tout moment via « Gérer les cookies » en bas de page. <a href="/confidentialite/" class="text-terra underline underline-offset-2">En savoir plus</a></p>
+    <div id="consentPrefs" class="hidden mt-4 space-y-3">
+      <div class="flex items-start justify-between gap-4 rounded-xl bg-cream p-3">
+        <div><p class="text-sm font-semibold text-forest">Fonctionnement du site</p><p class="text-xs text-ink/60">Mémorise vos choix. Toujours actif.</p></div>
+        <span class="text-xs font-semibold text-forest mt-0.5">Requis</span>
+      </div>
+      <label class="flex items-start justify-between gap-4 rounded-xl bg-cream p-3 cursor-pointer">
+        <span><span class="block text-sm font-semibold text-forest">Mesure d’audience</span><span class="block text-xs text-ink/60">Statistiques anonymes, sans cookie ni adresse IP.</span></span>
+        <input type="checkbox" id="cStats" class="mt-1 w-5 h-5 accent-[#1F3A2E] shrink-0">
+      </label>
+      <label class="flex items-start justify-between gap-4 rounded-xl bg-cream p-3 cursor-pointer">
+        <span><span class="block text-sm font-semibold text-forest">Contenus Facebook</span><span class="block text-xs text-ink/60">Affichage du fil d’actualité. Facebook dépose des cookies.</span></span>
+        <input type="checkbox" id="cFb" class="mt-1 w-5 h-5 accent-[#1F3A2E] shrink-0">
+      </label>
+    </div>
+    <div class="mt-5 grid grid-cols-2 gap-2">
+      <button type="button" data-consent="refuse" class="py-3 rounded-full border border-forest text-forest text-sm font-semibold hover:bg-forest hover:text-cream transition">Tout refuser</button>
+      <button type="button" data-consent="accept" class="py-3 rounded-full border border-forest bg-forest text-cream text-sm font-semibold hover:bg-terra hover:border-terra transition">Tout accepter</button>
+      <button type="button" data-consent="custom" class="col-span-2 py-2 text-sm text-terra font-medium underline underline-offset-4">Personnaliser</button>
+      <button type="button" data-consent="save" class="hidden col-span-2 py-3 rounded-full bg-terra text-white text-sm font-semibold hover:bg-forest transition">Enregistrer mes choix</button>
+    </div>
+  </div>
+</div>
 <button id="toTop" type="button" class="fixed bottom-5 left-5 z-40 w-11 h-11 rounded-full bg-white text-forest shadow-soft hidden items-center justify-center hover:text-terra" aria-label="Retour en haut">${ic('arrow-up')}</button>`;
 }
 
@@ -312,17 +345,52 @@ const forfaitCard = (f) => {
   const dark = f.featured;
   const li = f.items.map((i) => `<li class="flex gap-3">${ic('circle-check', 'w-5 h-5 shrink-0 mt-0.5 ' + (dark ? 'text-terra-light' : f.id === 'expert' ? 'text-terra' : 'text-forest'))}<span>${i}</span></li>`).join('');
   return `
-  <article class="reveal relative ${dark ? 'bg-forest text-cream shadow-soft lg:-my-4' : 'bg-white border border-forest/10'} rounded-3xl p-8 flex flex-col">
-    ${dark ? '<span class="absolute -top-3 left-8 bg-terra text-white text-xs tracking-wider px-3 py-1 rounded-full">LE PLUS CHOISI</span>' : ''}
-    <span class="w-12 h-12 rounded-full ${dark ? 'bg-terra text-white' : f.id === 'expert' ? 'bg-terra-soft text-terra' : 'bg-forest text-cream'} flex items-center justify-center">${ic(f.icon, 'w-6 h-6')}</span>
-    <h3 class="font-serif text-3xl font-semibold mt-5 ${dark ? '' : 'text-forest'}">Forfait ${f.name}</h3>
+  <article class="reveal relative ${dark ? 'bg-forest text-cream shadow-soft' : 'bg-white border border-forest/10'} rounded-3xl p-8 flex flex-col">
+    <div class="flex items-center justify-between gap-3">
+      <span class="w-12 h-12 rounded-full ${dark ? 'bg-terra text-white' : f.id === 'expert' ? 'bg-terra-soft text-terra' : 'bg-forest text-cream'} flex items-center justify-center">${ic(f.icon, 'w-6 h-6')}</span>
+      <span class="text-[11px] tracking-[.15em] uppercase font-semibold px-3 py-1 rounded-full ${dark ? 'bg-white/10 text-cream/85' : 'bg-cream text-ink/60'}">Exemple de formule</span>
+    </div>
+    <h3 class="font-serif text-3xl font-semibold mt-5 ${dark ? '' : 'text-forest'}">${f.name}</h3>
     <p class="text-sm mt-1 ${dark ? 'text-cream/75' : 'text-ink/60'}">${f.tagline}</p>
-    <p class="mt-6"><span class="font-serif text-5xl font-semibold ${dark ? '' : 'text-forest'}">${euro(f.price)}</span> <span class="${dark ? 'text-cream/75' : 'text-ink/60'}">HT / mois</span></p>
+    <p class="mt-6 text-xs uppercase tracking-[.15em] ${dark ? 'text-cream/60' : 'text-ink/50'}">Tarif indicatif</p>
+    <p class="mt-1"><span class="font-serif text-5xl font-semibold ${dark ? '' : 'text-forest'}">${euro(f.price)}</span> <span class="${dark ? 'text-cream/75' : 'text-ink/60'}">HT / mois</span></p>
     <ul class="mt-6 space-y-3 text-[15px] flex-1">${li}</ul>
     ${f.note ? `<p class="text-xs mt-6 ${dark ? 'text-cream/60' : 'text-ink/55'}">${f.note}</p>` : ''}
-    <a href="${contactUrl('Forfait ' + f.name)}" class="mt-6 text-center py-3 rounded-full font-medium transition ${dark ? 'bg-terra text-white hover:bg-white hover:text-forest' : f.id === 'expert' ? 'border border-terra text-terra hover:bg-terra hover:text-white' : 'border border-forest text-forest hover:bg-forest hover:text-cream'}">Choisir ${f.name}</a>
+    <p class="mt-5 text-xs flex gap-2 ${dark ? 'text-cream/75' : 'text-ink/60'}">${ic('sliders-horizontal', 'w-4 h-4 shrink-0 ' + (dark ? 'text-terra-light' : 'text-terra'))}<span>Retirez ou ajoutez des missions : le prix s’ajuste.</span></p>
+    <a href="${contactUrl('Forfait ' + f.name)}" class="mt-5 text-center py-3 rounded-full font-medium transition ${dark ? 'bg-terra text-white hover:bg-white hover:text-forest' : f.id === 'expert' ? 'border border-terra text-terra hover:bg-terra hover:text-white' : 'border border-forest text-forest hover:bg-forest hover:text-cream'}">Adapter cette formule</a>
   </article>`;
 };
+
+const composer = () => `
+<div id="composer" class="reveal mt-16 rounded-[2rem] bg-white shadow-soft overflow-hidden scroll-mt-24">
+  <div class="p-6 sm:p-10">
+    <div class="max-w-2xl">
+      <p class="eyebrow">Sur mesure</p>
+      <h3 class="font-serif text-3xl sm:text-4xl text-forest font-semibold mt-2">Composez votre formule</h3>
+      <p class="mt-3 text-ink/70">Cochez uniquement les missions qui vous intéressent : je vous envoie un devis adapté à votre volume réel.</p>
+    </div>
+    <div class="mt-8 grid md:grid-cols-3 gap-6">
+      ${MISSIONS.map((g) => `
+      <fieldset class="rounded-2xl bg-cream/70 p-5">
+        <legend class="sr-only">${g.group}</legend>
+        <p class="flex items-center gap-2 font-semibold text-forest">${ic(g.icon, 'w-5 h-5 text-terra')}${g.group}</p>
+        <div class="mt-4 flex flex-wrap gap-2">
+          ${g.items.map((m) => `<label class="mission cursor-pointer select-none"><input type="checkbox" class="sr-only peer" value="${esc(m)}"${g.ao ? ' data-ao="1"' : ''}><span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-forest/15 bg-white text-sm text-forest transition peer-checked:bg-forest peer-checked:text-cream peer-checked:border-forest peer-focus-visible:ring-2 peer-focus-visible:ring-terra hover:border-terra">${ic('plus', 'w-3.5 h-3.5 mission-plus')}${ic('check', 'w-3.5 h-3.5 mission-check hidden')}${m}</span></label>`).join('\n          ')}
+        </div>
+        ${g.ao ? `<div id="aoVolume" class="mt-4 hidden">
+          <label for="aoCount" class="block text-sm text-ink/70 mb-1.5">Combien de dossiers par mois ?</label>
+          <select id="aoCount" class="field !py-2 !bg-white text-sm">
+            <option>1 dossier par mois</option><option>2 dossiers par mois</option><option>3 dossiers par mois</option><option>Plus de 3 dossiers par mois</option><option>Ponctuellement, selon les consultations</option>
+          </select>
+        </div>` : ''}
+      </fieldset>`).join('')}
+    </div>
+  </div>
+  <div class="bg-forest text-cream px-6 sm:px-10 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <p id="composerCount" class="text-sm text-cream/85" aria-live="polite">Aucune mission sélectionnée pour l’instant.</p>
+    <a id="composerCta" href="${contactUrl('Autre / besoin sur mesure')}" class="inline-flex items-center justify-center gap-2 bg-terra text-white px-6 py-3 rounded-full font-medium hover:bg-white hover:text-forest transition">Demander mon devis sur mesure ${ic('arrow-right', 'w-4 h-4')}</a>
+  </div>
+</div>`;
 
 const articleCard = (a, h) => BLOG.card(a, h);
 
@@ -454,12 +522,19 @@ ${valuesBand()}
 
 <section id="forfaits" class="py-20 bg-white/60 scroll-mt-24" aria-labelledby="forfaits-title">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="text-center max-w-2xl mx-auto reveal">
-      <p class="font-script text-terra text-4xl">Trois forfaits, une même ambition :</p>
-      <h2 id="forfaits-title" class="h-section mt-1">vous simplifier la vie</h2>
+    <div class="text-center max-w-3xl mx-auto reveal">
+      <p class="eyebrow">Forfaits &amp; tarifs</p>
+      <h2 id="forfaits-title" class="h-section mt-3">Des formules 100 % modulables</h2>
+      <p class="font-script text-terra text-4xl mt-1">pensées pour vous donner des idées</p>
+      <p class="mt-5 text-ink/75 leading-relaxed">Ces trois formules sont des <strong class="text-forest">exemples de missions</strong> que je peux prendre en charge. Pas besoin de suivi RH ? Un seul dossier d’appel d’offres par mois vous suffit ? On retire, on ajoute, et <strong class="text-forest">le prix s’ajuste à votre besoin réel</strong>.</p>
+      <ul class="mt-6 flex flex-wrap justify-center gap-2 text-sm">
+        <li class="chip bg-white shadow-soft">${ic('puzzle', 'w-4 h-4 text-terra')}Missions à la carte</li>
+        <li class="chip bg-white shadow-soft">${ic('sliders-horizontal', 'w-4 h-4 text-terra')}Prix ajusté à votre volume</li>
+        <li class="chip bg-white shadow-soft">${ic('file-signature', 'w-4 h-4 text-terra')}Devis gratuit</li>
+      </ul>
     </div>
-    <div class="mt-16 grid lg:grid-cols-3 gap-6 items-stretch">${FORFAITS.map(forfaitCard).join('')}</div>
-    <p class="text-center mt-12 text-ink/65 reveal">${ic('puzzle', 'inline w-4 h-4 text-terra')} Des forfaits modulables selon vos besoins – <a href="${contactUrl('Autre / besoin sur mesure')}" class="text-terra underline underline-offset-4">demandez un devis personnalisé</a>.</p>
+    <div class="mt-14 grid lg:grid-cols-3 gap-6 items-stretch">${FORFAITS.map(forfaitCard).join('')}</div>
+    ${composer()}
   </div>
 </section>
 
@@ -748,7 +823,11 @@ legalPage('/confidentialite/', 'Politique de confidentialité', 'Politique de co
 <p>Ce site utilise une mesure d’audience interne, <strong>sans cookie</strong> et anonyme : pages consultées, site de provenance, type d’appareil et pays. Votre adresse IP n’est jamais enregistrée ; un identifiant technique non réversible, renouvelé chaque jour, permet seulement de compter les visites. Ces statistiques ne sont ni partagées ni croisées avec d’autres données, et sont supprimées au bout de 13 mois.</p>
 <h2>Cookies et contenus tiers</h2>
 <p>Ce site ne dépose aucun cookie publicitaire. Les polices de caractères sont hébergées sur le site lui-même. Certaines images d’illustration sont chargées depuis le service Unsplash, qui peut recevoir votre adresse IP lors de leur affichage.</p>
-<p>Le fil d’actualité Facebook de la page d’accueil n’est chargé que si vous cliquez sur « Afficher les publications ». Facebook (Meta Platforms Ireland Ltd.) peut alors déposer des cookies et collecter des données selon sa propre <a href="https://www.facebook.com/privacy/policy/" target="_blank" rel="noopener">politique de confidentialité</a>. Votre choix est mémorisé sur votre appareil ; vous pouvez le retirer en effaçant les données de ce site dans votre navigateur.</p>
+<p>Le fil d’actualité Facebook de la page d’accueil n’est chargé que si vous cliquez sur « Afficher les publications ». Facebook (Meta Platforms Ireland Ltd.) peut alors déposer des cookies et collecter des données selon sa propre <a href="https://www.facebook.com/privacy/policy/" target="_blank" rel="noopener">politique de confidentialité</a>. Votre choix est mémorisé sur votre appareil pendant 6 mois.</p>
+<h2>Gérer vos choix</h2>
+<p>Lors de votre première visite, un bandeau vous permet d’accepter ou de refuser la mesure d’audience et les contenus Facebook, aussi simplement l’un que l’autre. Vous pouvez modifier vos choix à tout moment :</p>
+<p><button type="button" data-consent-open class="btn-primary">Gérer les cookies</button></p>
+<p>Vos préférences sont enregistrées uniquement dans votre navigateur (stockage local), sans cookie.</p>
 <h2>Vos droits</h2>
 <p>Conformément au RGPD et à la loi Informatique et Libertés, vous disposez d’un droit d’accès, de rectification, d’effacement, de limitation, d’opposition et de portabilité de vos données. Pour les exercer, écrivez à <a href="mailto:${SITE.email}">${SITE.email}</a>.</p>
 <p>Vous pouvez également introduire une réclamation auprès de la CNIL : <a href="https://www.cnil.fr" target="_blank" rel="noopener">www.cnil.fr</a>.</p>`);
