@@ -7,6 +7,69 @@
    ========================================================== */
 export const ARTICLES = [
   {
+    slug: 'externaliser-appels-offres-btp',
+    cat: 'Appels d’offres',
+    date: '2026-10-23',
+    read: 6,
+    photo: 'worker',
+    title: 'Appels d’offres BTP : pourquoi confier le montage de vos dossiers ?',
+    description: 'Artisans et PME du BTP : ce que vous gagnez à externaliser le montage de vos dossiers d’appels d’offres et la rédaction du mémoire technique, sans perdre la main.',
+    excerpt: 'Beaucoup d’entreprises du bâtiment renoncent aux marchés publics faute de temps. Externaliser la partie administrative permet de répondre plus souvent, avec des dossiers plus solides.',
+    body: `
+<p>Les marchés publics représentent une source de chantiers régulière pour les entreprises du BTP. Pourtant, beaucoup d’artisans et de PME n’y répondent jamais, ou seulement de temps en temps. La raison est presque toujours la même : monter un dossier prend du temps, et ce temps manque quand on est déjà sur les chantiers.</p>
+<h2>Ce qui prend vraiment du temps</h2>
+<ul>
+<li><strong>La lecture du dossier de consultation</strong> : règlement de consultation, cahiers des charges, critères de notation, pièces demandées.</li>
+<li><strong>Les pièces administratives</strong> : formulaires de candidature (DC1, DC2 ou DUME), attestations fiscales et sociales, assurances, références… avec des dates de validité à surveiller.</li>
+<li><strong>Le mémoire technique</strong> : un document à rédiger pour chaque consultation, qui pèse souvent autant que le prix dans la note finale.</li>
+<li><strong>Le dépôt</strong> : sur une plateforme en ligne, avant une date et une heure limites qui ne pardonnent pas.</li>
+</ul>
+<h2>Ce que vous gardez, ce que vous déléguez</h2>
+<p>Externaliser ne veut pas dire perdre la main. Vous restez maître de ce qui fait votre valeur : <strong>vos prix, vos choix techniques, vos équipes et vos références</strong>. Je prends en charge tout le reste : l’analyse du dossier, la préparation et la vérification des pièces, la mise en forme et la rédaction du mémoire technique à partir de vos informations, le suivi des échéances.</p>
+<blockquote>Une règle simple guide chaque dossier : rien n’est déposé sans votre validation.</blockquote>
+<h2>Ce que vous y gagnez</h2>
+<ul>
+<li><strong>Répondre plus souvent</strong>, sans y passer vos soirées.</li>
+<li><strong>Des dossiers complets</strong> : une pièce manquante ou périmée suffit à écarter une candidature.</li>
+<li><strong>Un mémoire technique personnalisé</strong>, structuré selon les critères de l’acheteur, plutôt qu’un document générique.</li>
+<li><strong>Des documents récurrents à jour</strong> (attestations, références, présentation de l’entreprise), prêts pour la consultation suivante.</li>
+</ul>
+<h2>Un service encore rare</h2>
+<p>Peu d’assistantes indépendantes proposent cet accompagnement, car il demande de connaître à la fois les règles des marchés publics et les réalités du chantier. C’est pourtant souvent ce qui fait la différence entre une entreprise qui subit les appels d’offres et une entreprise qui en fait un levier de développement.</p>
+<p>Vous avez repéré une consultation ? <a href="/contact/?service=Appels%20d%E2%80%99offres%20%2F%20m%C3%A9moire%20technique">Envoyez-moi le lien et la date limite</a> : je vous dis rapidement ce qu’il faut préparer.</p>`
+  },
+  {
+    slug: 'premier-marche-public-artisan-btp',
+    cat: 'Appels d’offres',
+    date: '2026-10-22',
+    read: 7,
+    photo: 'docs',
+    title: 'Premier marché public : le guide pour les artisans et PME du BTP',
+    description: 'Où trouver les appels d’offres, comment lire le dossier de consultation, quelles pièces préparer et comment déposer : le guide pratique pour un premier marché public dans le BTP.',
+    excerpt: 'Vous n’avez jamais répondu à un marché public ? Voici les étapes, de la recherche des consultations au dépôt de votre offre, pour vous lancer sereinement.',
+    body: `
+<p>Répondre à un premier marché public peut impressionner : vocabulaire spécifique, nombreux documents, plateformes en ligne… Pourtant, la démarche suit toujours les mêmes étapes. Les voici dans l’ordre.</p>
+<h2>1. Trouver les consultations</h2>
+<p>Les acheteurs publics (communes, intercommunalités, département, bailleurs sociaux, hôpitaux…) publient leurs consultations sur leur profil d’acheteur, c’est-à-dire une plateforme de dématérialisation. Les plus importantes paraissent aussi au <a href="https://www.boamp.fr" target="_blank" rel="noopener">BOAMP</a>. Pour ne rien manquer, mieux vaut mettre en place une veille avec des alertes sur vos métiers et votre zone géographique.</p>
+<h2>2. Lire le dossier de consultation (DCE)</h2>
+<ul>
+<li><strong>Le règlement de consultation (RC)</strong> : les règles du jeu, les pièces à fournir, la date limite et surtout les critères de notation.</li>
+<li><strong>Les cahiers des clauses</strong> (administratives et techniques) : ce que l’acheteur attend précisément.</li>
+<li><strong>Les documents de prix</strong> : bordereau de prix, décomposition du prix global ou détail estimatif, à compléter.</li>
+</ul>
+<p>Prenez le temps de vérifier que le marché correspond à vos capacités : volume, délais, qualifications demandées, lot concerné.</p>
+<h2>3. Préparer la candidature</h2>
+<p>Elle prouve que votre entreprise peut exécuter le marché : formulaires DC1 et DC2 (ou DUME), attestations de régularité fiscale et sociale, extrait Kbis ou inscription au répertoire des métiers, attestations d’assurance, références de chantiers similaires, qualifications éventuelles.</p>
+<h2>4. Construire l’offre</h2>
+<p>L’offre comprend vos prix et votre mémoire technique. Le mémoire doit répondre point par point aux critères du règlement de consultation : moyens humains et matériels, méthodologie, planning, sécurité, environnement. C’est souvent lui qui départage des offres aux prix proches.</p>
+<h2>5. Déposer à temps</h2>
+<p>Le dépôt se fait sur la plateforme indiquée dans le dossier. Créez votre compte à l’avance, vérifiez si une signature électronique est demandée et déposez sans attendre la dernière heure : une offre arrivée après l’heure limite est rejetée, même avec quelques minutes de retard.</p>
+<h2>6. Après le dépôt</h2>
+<p>L’acheteur peut poser des questions ou demander des compléments : répondez rapidement. Si votre offre n’est pas retenue, vous pouvez demander les motifs du rejet et votre note : c’est la meilleure façon de progresser pour la consultation suivante.</p>
+<blockquote>Petite entreprise ? Pensez aux marchés découpés en lots, à la réponse en groupement avec une autre entreprise ou à la sous-traitance déclarée : ce sont de bonnes portes d’entrée.</blockquote>
+<p>Vous voulez vous lancer sans y passer vos soirées ? <a href="/appels-offres/">Je vous accompagne de la veille au dépôt</a>, en étroite collaboration avec vous.</p>`
+  },
+  {
     slug: 'externaliser-gestion-administrative-signes',
     cat: 'Gestion administrative',
     date: '2026-10-14',
@@ -59,7 +122,7 @@ export const ARTICLES = [
   {
     slug: 'relances-impayes-methode',
     cat: 'ADV',
-    date: '2026-09-18',
+    date: '2026-10-06',
     read: 4,
     photo: 'calc',
     title: 'Relances d’impayés : la méthode en 4 étapes pour être payé plus vite',
@@ -82,7 +145,7 @@ export const ARTICLES = [
   {
     slug: 'variables-de-paie-btp',
     cat: 'RH & paie',
-    date: '2026-09-05',
+    date: '2026-10-09',
     read: 5,
     photo: 'sign',
     title: 'Paniers repas, indemnités kilométriques : bien suivre les variables de paie',
@@ -107,7 +170,7 @@ export const ARTICLES = [
   {
     slug: 'dc1-dc2-dossier-candidature-marche-public',
     cat: 'Appels d’offres',
-    date: '2026-08-22',
+    date: '2026-10-16',
     read: 6,
     photo: 'docs',
     title: 'DC1, DC2 : s’y retrouver dans le dossier de candidature',
@@ -135,7 +198,7 @@ export const ARTICLES = [
   {
     slug: 'facturation-electronique-pme',
     cat: 'ADV',
-    date: '2026-08-08',
+    date: '2026-10-20',
     read: 5,
     photo: 'notebook',
     title: 'Facturation électronique : ce qui change pour les PME',

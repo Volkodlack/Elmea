@@ -119,9 +119,9 @@ const FAQ = [
   { q: 'Qu’est-ce qu’une gestionnaire administrative externalisée ?',
     a: 'C’est une professionnelle indépendante qui prend en charge tout ou partie de votre administratif (facturation, relances, suivi RH, appels d’offres…) sans être salariée de votre entreprise. Vous recevez une facture mensuelle, sans charges sociales ni contrat de travail.' },
   { q: 'Intervenez-vous sur site ou uniquement à distance ?',
-    a: 'Les deux. J’interviens sur site à Monteux, Carpentras, Avignon et alentours, et à distance partout en France grâce à des outils sécurisés de partage de documents.' },
+    a: 'Les deux. J’interviens sur site à Monteux, Carpentras, Avignon et alentours, et à distance partout en France grâce à des outils sécurisés de partage de documents. Les frais de déplacement sont facturés selon la distance, jusqu’à 100 km pour les missions ponctuelles.' },
   { q: 'Combien coûte l’externalisation de mon administratif ?',
-    a: 'Les formules présentées (Essentiel 490 € HT, Sérénité 790 € HT, Expert 1 200 € HT par mois) sont des exemples indicatifs. Tout est modulable : vous ne gardez que les missions dont vous avez besoin – par exemple sans suivi RH, ou avec un seul dossier d’appel d’offres par mois – et le tarif est ajusté en conséquence sur devis. Des missions ponctuelles sont aussi possibles.' },
+    a: 'Les formules présentées (Essentiel 490 € HT, Sérénité 790 € HT, Expert 1 200 € HT par mois) sont des exemples indicatifs. Tout est modulable : vous ne gardez que les missions dont vous avez besoin – par exemple sans suivi RH, ou avec un seul dossier d’appel d’offres par mois – et le tarif est ajusté en conséquence sur devis. Toutes les missions sont aussi possibles ponctuellement : décrivez votre besoin pour recevoir un devis personnalisé.' },
   { q: 'Mes données sont-elles en sécurité ?',
     a: 'La confidentialité est l’un de mes engagements fondamentaux. Vos documents, données clients et données salariés ne sont jamais partagés, et un engagement de confidentialité peut être signé dès le début de la collaboration.' },
   { q: 'Pouvez-vous répondre à un appel d’offres à ma place ?',
@@ -185,7 +185,10 @@ const businessLd = () => ({
   telephone: SITE.phoneIntl,
   email: SITE.email,
   founder: { '@type': 'Person', name: SITE.owner, jobTitle: SITE.role },
-  address: { '@type': 'PostalAddress', addressLocality: SITE.city, postalCode: SITE.postalCode, addressRegion: SITE.region, addressCountry: 'FR' },
+  legalName: SITE.legal.publisher,
+  foundingDate: SITE.legal.created,
+  identifier: { '@type': 'PropertyValue', propertyID: 'SIRET', value: SITE.legal.siret.replace(/\s/g, '') },
+  address: { '@type': 'PostalAddress', streetAddress: SITE.legal.street, addressLocality: SITE.city, postalCode: SITE.postalCode, addressRegion: SITE.region, addressCountry: 'FR' },
   geo: { '@type': 'GeoCoordinates', latitude: SITE.geo.lat, longitude: SITE.geo.lng },
   areaServed: [...SITE.areas.map((a) => ({ '@type': 'City', name: a })), { '@type': 'AdministrativeArea', name: 'Vaucluse' }, { '@type': 'Country', name: 'France' }],
   priceRange: '490 € – 1 200 € HT / mois',
@@ -280,7 +283,7 @@ function footer() {
   <div class="border-t border-white/10">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col md:flex-row justify-between gap-3 text-xs text-cream/60">
       <p>© ${new Date().getFullYear()} ${SITE.name} – ${SITE.legal.publisher}. Tous droits réservés.</p>
-      <p class="flex flex-wrap gap-x-4 gap-y-1"><a href="/mentions-legales/" class="hover:text-cream">Mentions légales</a><a href="/confidentialite/" class="hover:text-cream">Politique de confidentialité</a><button type="button" data-consent-open class="hover:text-cream underline-offset-2">Gérer les cookies</button><a href="/sitemap.xml" class="hover:text-cream">Plan du site</a></p>
+      <p class="flex flex-wrap gap-x-4 gap-y-1"><a href="/mentions-legales/" class="hover:text-cream">Mentions légales</a><a href="/confidentialite/" class="hover:text-cream">Politique de confidentialité</a><a href="/cgv/" class="hover:text-cream">CGV</a><button type="button" data-consent-open class="hover:text-cream underline-offset-2">Gérer les cookies</button><a href="/sitemap.xml" class="hover:text-cream">Plan du site</a></p>
     </div>
   </div>
 </footer>
@@ -369,8 +372,9 @@ ${footer()}
 const personLd = () => ({
   '@context': 'https://schema.org', '@type': 'Person', name: SITE.owner, jobTitle: SITE.role,
   worksFor: { '@id': BUSINESS_ID }, url: SITE.url + '/',
-  knowsAbout: ['Gestion administrative', 'Administration des ventes', 'Facturation', 'Variables de paie', 'Appels d’offres', 'Mémoire technique BTP'],
-  hasCredential: { '@type': 'EducationalOccupationalCredential', name: 'BTS Gestion de la PME' }
+  knowsAbout: ['Gestion administrative', 'Administration des ventes', 'Facturation', 'Variables de paie', 'Appels d’offres', 'Marchés publics', 'Mémoire technique BTP', ...SITE.tools],
+  hasCredential: { '@type': 'EducationalOccupationalCredential', name: 'BTS Gestion de la PME' },
+  sameAs: [SITE.social.linkedin].filter(Boolean)
 });
 
 const socialSection = () => {
@@ -579,6 +583,27 @@ const add = (p, html, opts = {}) => pages.push({ path: p, html, ...opts });
   </div>
 </section>
 
+<section class="bg-forest text-cream py-20 overflow-hidden" aria-labelledby="ao-home-title">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center">
+    <div class="reveal">
+      <p class="text-terra-light text-xs tracking-[.25em] uppercase font-semibold">Ma spécialité</p>
+      <h2 id="ao-home-title" class="font-serif text-4xl sm:text-5xl font-semibold mt-3 leading-tight">Les appels d’offres, un service encore rare</h2>
+      <p class="mt-5 text-cream/85 leading-relaxed">Peu d’assistantes indépendantes accompagnent les entreprises du BTP sur les marchés publics. C’est pourtant là que beaucoup d’artisans et de PME laissent passer des chantiers, faute de temps pour monter le dossier.</p>
+      <ul class="mt-6 space-y-3">
+        ${['Veille et suivi des dates limites de remise des offres', 'Dossier de candidature complet : DC1, DC2, attestations, références', 'Mémoire technique rédigé pour chaque consultation, à partir de vos informations', 'Rien n’est déposé sans votre validation'].map((t) => `<li class="flex gap-3">${ic('check', 'w-5 h-5 text-terra-light shrink-0 mt-0.5')}<span>${t}</span></li>`).join('')}
+      </ul>
+      <div class="mt-8 flex flex-col sm:flex-row sm:flex-wrap gap-3">
+        <a href="/appels-offres/" class="inline-flex items-center justify-center gap-2 bg-terra text-white px-7 py-4 rounded-full font-medium hover:bg-white hover:text-forest transition sm:whitespace-nowrap">Découvrir l’accompagnement ${ic('arrow-right')}</a>
+        <a href="${contactUrl('Appels d’offres / mémoire technique')}" class="inline-flex items-center justify-center gap-2 border border-cream/40 px-7 py-4 rounded-full font-medium hover:bg-white/10 transition sm:whitespace-nowrap">J’ai une consultation en cours</a>
+      </div>
+    </div>
+    <ol class="reveal grid sm:grid-cols-2 gap-4">
+      ${[['Analyse', 'Lecture du dossier de consultation et des critères de notation'], ['Échange', 'Vous m’apportez votre expertise chantier et vos prix'], ['Rédaction', 'Montage du dossier et du mémoire technique'], ['Validation', 'Relecture commune, puis dépôt sur la plateforme']].map(([t, d], i) =>
+        `<li class="rounded-2xl bg-white/5 border border-white/10 p-6"><p class="font-serif text-4xl text-terra-light">${i + 1}</p><p class="font-semibold mt-2">${t}</p><p class="text-sm text-cream/75 mt-1">${d}</p></li>`).join('')}
+    </ol>
+  </div>
+</section>
+
 <section class="py-20" aria-labelledby="why-title">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-5 gap-12 items-start">
     <div class="lg:col-span-2 reveal lg:sticky lg:top-28">
@@ -611,7 +636,8 @@ ${valuesBand()}
       <p class="eyebrow">Qui suis-je ?</p>
       <h2 id="about-title" class="h-section mt-3">${SITE.owner}, votre partenaire administrative</h2>
       <p class="mt-5 text-ink/75 leading-relaxed">Forte de <strong class="text-forest">15 ans d’expérience dans l’administratif</strong>, titulaire d’un <strong class="text-forest">BTS Gestion de la PME</strong> et ancienne <strong class="text-forest">assistante de direction</strong>, j’ai créé Élméa Solutions pour offrir aux dirigeants de PME et aux entreprises du BTP un soutien administratif fiable, réactif et sur mesure.</p>
-      <p class="mt-4 text-ink/75 leading-relaxed">Ma vision à la fois globale et opérationnelle de l’entreprise me permet de comprendre rapidement vos enjeux et de m’intégrer à votre organisation, sur site comme à distance.</p>
+      <p class="mt-4 text-ink/75 leading-relaxed">J’ai travaillé auprès de <strong class="text-forest">TPE, PME et artisans, notamment du BTP</strong>. Ma vision à la fois globale et opérationnelle de l’entreprise me permet de comprendre rapidement vos enjeux et de m’intégrer à votre organisation, sur site comme à distance.</p>
+      <p class="mt-4 text-ink/75 leading-relaxed">Je travaille dans vos outils (${SITE.tools.join(', ')}…) et, si vous n’avez pas encore de logiciel de facturation, je mets le mien à votre disposition.</p>
       <p class="font-script text-terra text-4xl mt-5">Manon</p>
       <h3 class="sr-only">Élméa Solutions en bref</h3>
       <dl class="mt-8 grid sm:grid-cols-2 gap-x-8 gap-y-4 text-sm border-t border-forest/10 pt-6">
@@ -620,6 +646,8 @@ ${valuesBand()}
         <div><dt class="text-ink/50">Basée à</dt><dd class="text-forest font-medium mt-0.5">${SITE.city} (Vaucluse, 84)</dd></div>
         <div><dt class="text-ink/50">Intervention</dt><dd class="text-forest font-medium mt-0.5">Sur site (Monteux, Carpentras, Avignon) ou à distance</dd></div>
         <div><dt class="text-ink/50">Tarifs</dt><dd class="text-forest font-medium mt-0.5">Formules modulables, à titre indicatif de 490 à 1 200 € HT/mois</dd></div>
+        <div><dt class="text-ink/50">Outils maîtrisés</dt><dd class="text-forest font-medium mt-0.5">${SITE.tools.join(', ')}</dd></div>
+        <div><dt class="text-ink/50">Déplacements</dt><dd class="text-forest font-medium mt-0.5">Jusqu’à 100 km pour les missions ponctuelles</dd></div>
         <div><dt class="text-ink/50">Contact</dt><dd class="text-forest font-medium mt-0.5"><a href="tel:${SITE.phoneIntl}" class="hover:text-terra">${SITE.phone}</a></dd></div>
       </dl>
     </div>
@@ -636,8 +664,10 @@ ${valuesBand()}
       <ul class="mt-6 flex flex-wrap justify-center gap-2 text-sm">
         <li class="chip bg-white shadow-soft">${ic('puzzle', 'w-4 h-4 text-terra')}Missions à la carte</li>
         <li class="chip bg-white shadow-soft">${ic('sliders-horizontal', 'w-4 h-4 text-terra')}Prix ajusté à votre volume</li>
+        <li class="chip bg-white shadow-soft">${ic('calendar-clock', 'w-4 h-4 text-terra')}Missions ponctuelles</li>
         <li class="chip bg-white shadow-soft">${ic('file-signature', 'w-4 h-4 text-terra')}Devis gratuit</li>
       </ul>
+      <p class="mt-5 text-sm text-ink/65">Besoin ponctuel ? Toutes les missions sont aussi possibles à la demande : décrivez votre besoin pour recevoir un devis personnalisé. ${SITE.travel}</p>
     </div>
     <div class="mt-14 grid lg:grid-cols-3 gap-6 items-stretch">${FORFAITS.map(forfaitCard).join('')}</div>
     ${composer()}
@@ -687,7 +717,7 @@ ${ctaBlock()}`;
     ['04', 'Relances d’impayés', 'Relances amiables graduées (mail, téléphone, courrier) avec un ton courtois qui préserve la relation client.']
   ];
   const faq = [
-    { q: 'Utilisez-vous mon logiciel de facturation ?', a: 'Oui. Je travaille directement dans vos outils (logiciel de devis-factures, logiciel métier BTP, tableur) pour que vous gardiez la main sur vos données à tout moment.' },
+    { q: 'Utilisez-vous mon logiciel de facturation ?', a: 'Oui, je travaille directement dans vos outils (logiciel de devis-factures, logiciel métier BTP, Excel, Sage…) pour que vous gardiez la main sur vos données. Si vous n’avez pas encore de logiciel de facturation, je mets le mien à votre disposition.' },
     { q: 'Comment se passent les relances clients ?', a: 'Selon un calendrier défini ensemble : rappel courtois après l’échéance, appel téléphonique, puis relance écrite. Aucune mise en demeure n’est envoyée sans votre accord.' },
     { q: 'Quel forfait choisir pour l’ADV ?', a: 'Le forfait Essentiel (490 € HT/mois) couvre la facturation, l’échéancier, les relances et le reporting jusqu’à 30 factures par mois. Au-delà, ou avec la gestion des mails, le forfait Sérénité est plus adapté.' }
   ];
@@ -865,6 +895,7 @@ ${ctaBlock('Un appel d’offres en vue ?', 'Envoyez-moi le lien de la consultati
           </label>
           <p id="err-rgpd" class="hidden text-xs text-red-600 mt-1">Merci d’accepter pour envoyer votre demande.</p>
         </div>
+        <p class="text-xs text-ink/55">Prestations réservées aux professionnels, régies par nos <a href="/cgv/" class="text-terra underline underline-offset-2">conditions générales de vente</a>.</p>
         <button id="submitBtn" type="submit" class="w-full sm:w-auto btn-primary disabled:opacity-60"><span>Envoyer ma demande</span> ${ic('send')}</button>
         <div id="formStatus" class="hidden" role="status" aria-live="polite"></div>
       </form>
@@ -973,6 +1004,62 @@ legalPage('/confidentialite/', 'Politique de confidentialité', 'Politique de co
 <p>Conformément au RGPD et à la loi Informatique et Libertés, vous disposez d’un droit d’accès, de rectification, d’effacement, de limitation, d’opposition et de portabilité de vos données. Pour les exercer, écrivez à <a href="mailto:${SITE.email}">${SITE.email}</a>.</p>
 <p>Vous pouvez également introduire une réclamation auprès de la CNIL : <a href="https://www.cnil.fr" target="_blank" rel="noopener">www.cnil.fr</a>.</p>`);
 
+/* ===== CGV (prestations de services entre professionnels) ===== */
+legalPage('/cgv/', 'Conditions générales de vente', 'Conditions générales de vente | Élméa Solutions', 'Conditions générales de vente des prestations de gestion administrative externalisée d’Élméa Solutions, réservées aux professionnels.', `
+<h2>1. Champ d’application</h2>
+<p>Les présentes conditions générales de vente (CGV) s’appliquent à toutes les prestations réalisées par <strong>${SITE.legal.publisher}</strong>, exerçant sous le nom commercial ${SITE.name}, ${SITE.legal.address}, SIRET ${SITE.legal.siret} (ci-après « le Prestataire »), pour le compte de clients professionnels (ci-après « le Client »).</p>
+<p>Les prestations sont exclusivement destinées aux professionnels (entreprises, artisans, associations, collectivités). Toute commande implique l’acceptation sans réserve des présentes CGV, qui prévalent sur les conditions générales d’achat du Client, sauf accord écrit contraire. Les CGV sont communiquées à tout Client qui en fait la demande et sont consultables en permanence sur ce site.</p>
+
+<h2>2. Prestations</h2>
+<p>Le Prestataire propose des prestations de gestion administrative externalisée : administration des ventes (devis, facturation, suivi des échéances, relances), gestion administrative et suivi des salariés (courrier, assurances, mutuelles, plannings, réservations de déplacements, collecte des éléments variables de paie) et accompagnement aux appels d’offres (veille, montage du dossier de candidature, rédaction du mémoire technique, suivi des échéances).</p>
+<p>Les prestations sont proposées sous forme de forfaits mensuels modulables ou de missions ponctuelles. Leur contenu précis, leur volume et leurs modalités d’exécution (sur site ou à distance) sont définis dans le devis accepté par le Client.</p>
+<p>Le Prestataire n’exerce aucune activité réglementée : il ne tient pas la comptabilité, n’établit pas les bulletins de paie et ne délivre aucun conseil juridique, fiscal ou social. Ces missions relèvent des professionnels habilités (expert-comptable, avocat…) auxquels le Prestataire transmet, le cas échéant, les éléments préparés.</p>
+
+<h2>3. Devis et commande</h2>
+<p>Toute prestation fait l’objet d’un devis gratuit et personnalisé, établi à partir des besoins exprimés par le Client. Sauf mention contraire, le devis est valable 30 jours. La commande devient ferme à réception du devis accepté par le Client, par signature ou par acceptation écrite (y compris par email).</p>
+
+<h2>4. Prix</h2>
+<p>Les prix sont exprimés en euros hors taxes. ${SITE.legal.vat}. Les tarifs affichés sur le site sont donnés à titre indicatif ; seul le prix figurant sur le devis accepté engage les parties.</p>
+<p>Les frais de déplacement liés aux interventions sur site sont facturés en fonction de la distance parcourue, dans un rayon de 100 km maximum pour les missions ponctuelles. Leur montant ou leur mode de calcul est précisé dans le devis.</p>
+<p>Toute modification des tarifs d’un forfait en cours est notifiée au Client par écrit au moins un mois avant son application. Le Client peut alors résilier le forfait dans les conditions de l’article 7.</p>
+
+<h2>5. Facturation et paiement</h2>
+<p>Les forfaits mensuels sont facturés à la fin de chaque mois. Les missions ponctuelles sont facturées à leur achèvement ; un acompte peut être demandé au devis pour les missions importantes.</p>
+<p>Sauf délai différent indiqué sur la facture, les factures sont payables à 30 jours à compter de leur date d’émission, par virement bancaire. Aucun escompte n’est accordé en cas de paiement anticipé.</p>
+
+<h2>6. Retard de paiement</h2>
+<p>Conformément à l’article L. 441-10 du Code de commerce, tout retard de paiement entraîne de plein droit, sans rappel préalable, l’application de pénalités de retard calculées au taux égal à trois fois le taux d’intérêt légal, ainsi qu’une indemnité forfaitaire pour frais de recouvrement de 40 € (article D. 441-5 du Code de commerce). Si les frais de recouvrement réellement engagés dépassent ce montant, une indemnisation complémentaire peut être demandée sur justificatif.</p>
+<p>En cas de non-paiement à l’échéance, le Prestataire peut suspendre l’exécution des prestations huit jours après une mise en demeure restée sans effet.</p>
+
+<h2>7. Durée et résiliation</h2>
+<p>Les forfaits mensuels sont conclus pour une durée indéterminée. Chaque partie peut y mettre fin à tout moment par écrit (email ou courrier), moyennant un préavis d’un mois. Les missions ponctuelles prennent fin à la livraison de la prestation.</p>
+<p>En cas de manquement grave de l’une des parties à ses obligations, non réparé dans les quinze jours suivant une mise en demeure, l’autre partie peut résilier le contrat sans préavis. Les prestations réalisées jusqu’à la date de fin restent dues.</p>
+
+<h2>8. Obligations du Client</h2>
+<p>Le Client s’engage à transmettre au Prestataire, dans des délais compatibles avec les échéances, des informations et documents complets, exacts et à jour, et à lui donner les accès nécessaires à ses outils. Le Client reste seul responsable de l’exactitude des informations transmises, des décisions prises et des documents qu’il valide ou signe.</p>
+
+<h2>9. Appels d’offres</h2>
+<p>L’accompagnement aux appels d’offres repose sur une collaboration étroite : le Client apporte son expertise technique, ses prix, ses références et ses moyens ; le Prestataire assure le montage administratif du dossier et la rédaction du mémoire technique à partir de ces éléments. Aucun dossier n’est déposé sans la validation préalable et expresse du Client.</p>
+<p>Le Prestataire est tenu à une obligation de moyens : il ne peut garantir l’attribution d’un marché, qui relève de la seule décision de l’acheteur. Le respect des dates limites de remise suppose que le Client transmette les éléments demandés suffisamment à l’avance ; le Prestataire ne saurait être tenu responsable d’un dépôt hors délai dû à une transmission tardive.</p>
+
+<h2>10. Responsabilité</h2>
+<p>Le Prestataire exécute ses prestations avec soin et selon les règles de l’art, dans le cadre d’une obligation de moyens. Sa responsabilité ne peut être engagée qu’en cas de faute prouvée et pour les seuls dommages directs. Sauf faute lourde ou intentionnelle, elle est limitée au montant hors taxes facturé au Client au titre des trois derniers mois de prestations précédant le fait générateur.</p>
+
+<h2>11. Confidentialité</h2>
+<p>Le Prestataire s’engage à garder strictement confidentielles toutes les informations et tous les documents dont il a connaissance dans le cadre de sa mission, pendant toute la durée de la relation et après sa fin. Un engagement de confidentialité spécifique peut être signé à la demande du Client.</p>
+
+<h2>12. Données personnelles</h2>
+<p>Lorsqu’il traite des données personnelles pour le compte du Client (données des salariés, clients ou fournisseurs du Client), le Prestataire agit en qualité de sous-traitant au sens de l’article 28 du Règlement général sur la protection des données (RGPD). Il ne traite ces données que sur instruction du Client et pour les besoins de la mission, en assure la sécurité et la confidentialité, n’en fait aucun autre usage et, au terme de la mission, les restitue au Client ou les supprime selon son choix. Les données des prospects et clients du Prestataire sont traitées conformément à la <a href="/confidentialite/">politique de confidentialité</a>.</p>
+
+<h2>13. Propriété des documents</h2>
+<p>Les documents et données fournis par le Client restent sa propriété et lui sont restitués sur simple demande. Les documents produits pour le Client dans le cadre de la mission (dossiers, mémoires techniques, tableaux de suivi) lui appartiennent dès leur complet paiement. Les méthodes, trames et modèles propres au Prestataire restent sa propriété.</p>
+
+<h2>14. Force majeure</h2>
+<p>Aucune des parties ne peut être tenue responsable d’un manquement à ses obligations résultant d’un cas de force majeure au sens de l’article 1218 du Code civil. La partie concernée en informe l’autre sans délai ; les obligations sont suspendues pendant la durée de l’empêchement.</p>
+
+<h2>15. Droit applicable et litiges</h2>
+<p>Les présentes CGV sont soumises au droit français. En cas de différend, les parties recherchent d’abord une solution amiable. À défaut, le litige est porté devant la juridiction compétente selon les règles de droit commun.</p>`);
+
 /* ===== MERCI & 404 ===== */
 add('/merci/', layout({ path: '/merci/', noindex: true, title: 'Merci pour votre demande | Élméa Solutions', description: 'Votre demande a bien été envoyée.', body: `
 <section class="max-w-2xl mx-auto px-4 py-24 text-center">
@@ -1057,6 +1144,10 @@ fs.writeFileSync(path.join(OUT, 'llms.txt'), `# ${SITE.name}
 - Contact : ${SITE.phone} · ${SITE.email} · ${abs('/contact/')}
 - Horaires : ${SITE.hours}
 - Valeurs : organisation, rigueur, confidentialité, réactivité
+- Outils maîtrisés : ${SITE.tools.join(', ')} ; logiciel de facturation mis à disposition si besoin
+- Déplacements : ${SITE.travel}
+- Spécialité rare : accompagnement complet des TPE/PME du BTP sur les appels d’offres et marchés publics
+- SIRET : ${SITE.legal.siret} – ${SITE.legal.publisher}, ${SITE.legal.address}
 
 ## Services
 - [ADV & facturation](${abs('/adv/')}) : devis, facturation, suivi des échéances, relances d’impayés
@@ -1066,6 +1157,8 @@ fs.writeFileSync(path.join(OUT, 'llms.txt'), `# ${SITE.name}
 ## Tarifs (indicatifs, formules 100 % modulables)
 ${FORFAITS.map((f) => `- ${f.name} : ${f.price} € HT/mois – ${f.items.map(strip).join(', ')}`).join('\n')}
 - Toutes les formules sont adaptables : le client choisit uniquement les missions utiles (ex. sans suivi RH, un seul dossier d’appel d’offres par mois) et le prix est ajusté sur devis gratuit.
+- Missions ponctuelles et tarif horaire : sur devis personnalisé.
+- Conditions générales de vente : ${abs('/cgv/')}
 
 ## Pages locales
 ${CITIES.map((c) => `- [${c.h1}](${abs(c.path)})`).join('\n')}

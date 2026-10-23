@@ -20,13 +20,15 @@ export const SITE = {
   geo: { lat: 44.0361, lng: 4.9967 },
   areas: ['Monteux', 'Carpentras', 'Avignon', 'Pernes-les-Fontaines', 'Sorgues', 'L’Isle-sur-la-Sorgue'],
   hours: 'Du lundi au vendredi, 8 h 30 – 18 h',
+  travel: 'Frais de déplacement facturés selon la distance, jusqu’à 100 km pour les missions ponctuelles.',
+  tools: ['Excel', 'Sage', 'OpenConcerto', 'plateformes de marchés publics'],
   social: {
     instagram: 'https://www.instagram.com/elmea.solutions',
     instagramHandle: '@elmea.solutions',
     /* Lien de la page Facebook (ex. 'https://www.facebook.com/elmea.solutions').
        Renseigné = icône + fil d'actualité Facebook sur l'accueil. */
-    facebook: '',
-    linkedin: ''    // laisser vide = icône masquée
+    facebook: 'https://www.facebook.com/profile.php?id=61594719788587',
+    linkedin: 'https://www.linkedin.com/in/%C3%A9lm%C3%A9a-solutions-manon-samain-86399043a/'
   },
   /* Formulaire : sans endpoint, le formulaire ouvre la messagerie (mailto).
      Web3Forms (gratuit) : endpoint 'https://api.web3forms.com/submit' + accessKey. */
@@ -37,9 +39,11 @@ export const SITE = {
   indexNowKey: '5f3c9a1e7b2d4c8a9e6f0b1d2c3a4e5f',
   legal: {
     status: 'Entrepreneur individuel (EI) – micro-entreprise',
-    siret: '[SIRET À COMPLÉTER]',
-    address: '[Adresse professionnelle à compléter], 84170 Monteux',
-    vat: 'TVA non applicable, art. 293 B du CGI [à confirmer selon le régime]',
+    siret: '130 686 918 00017',
+    created: '2026-10-01',
+    street: '132 avenue de l’Europe',
+    address: '132 avenue de l’Europe, 84170 Monteux',
+    vat: 'TVA non applicable, art. 293 B du CGI',
     host: 'Cloudflare, Inc. – 101 Townsend St, San Francisco, CA 94107, États-Unis – www.cloudflare.com',
     publisher: 'Manon Samain EI'
   },

@@ -25,13 +25,38 @@ let secretCache = null;
 async function init(db) {
   await db.batch(SCHEMA.map((q) => db.prepare(q)));
   const seeded = await db.prepare(`SELECT v FROM meta WHERE k = 'seeded'`).first();
-  if (seeded) return migratePhotos(db);
+  if (seeded) { await syncSeeds(db); return migratePhotos(db); }
   const now = new Date().toISOString();
   const ins = `INSERT OR IGNORE INTO posts (slug, title, cat, date, read_min, image, description, excerpt, body, status, created_at, updated_at)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'published', ?, ?)`;
   const stmts = SEED_POSTS.map((p) => db.prepare(ins).bind(p.slug, p.title, p.cat, p.date, p.read, p.image, p.description, p.excerpt, p.body, now, now));
   stmts.push(db.prepare(`INSERT OR IGNORE INTO meta (k, v) VALUES ('secret', ?)`).bind(randomHex(32)));
   stmts.push(db.prepare(`INSERT OR IGNORE INTO meta (k, v) VALUES ('seeded', ?)`).bind(now));
+  stmts.push(db.prepare(`INSERT OR REPLACE INTO meta (k, v) VALUES ('seed_slugs', ?)`).bind(JSON.stringify(SEED_POSTS.map((p) => p.slug))));
+  stmts.push(db.prepare(`INSERT OR REPLACE INTO meta (k, v) VALUES ('seed_version', ?)`).bind(seedVersion()));
+  await db.batch(stmts);
+}
+
+/* Articles fournis avec le site : ajoute les nouveaux une seule fois (un article
+   supprimé depuis l'admin ne revient jamais) et met à jour la date des articles
+   jamais modifiés. */
+const ORIGINAL_SEEDS = ['externaliser-gestion-administrative-signes', 'memoire-technique-btp-conseils', 'relances-impayes-methode',
+  'variables-de-paie-btp', 'dc1-dc2-dossier-candidature-marche-public', 'facturation-electronique-pme'];
+const seedVersion = () => SEED_POSTS.map((p) => p.slug + '@' + p.date).join('|');
+async function syncSeeds(db) {
+  const ver = seedVersion();
+  const cur = await db.prepare(`SELECT v FROM meta WHERE k = 'seed_version'`).first();
+  if (cur?.v === ver) return;
+  const row = await db.prepare(`SELECT v FROM meta WHERE k = 'seed_slugs'`).first();
+  const known = row ? JSON.parse(row.v) : ORIGINAL_SEEDS;
+  const now = new Date().toISOString();
+  const stmts = SEED_POSTS.map((p) => known.includes(p.slug)
+    ? db.prepare(`UPDATE posts SET date = ? WHERE slug = ? AND updated_at = created_at`).bind(p.date, p.slug)
+    : db.prepare(`INSERT OR IGNORE INTO posts (slug, title, cat, date, read_min, image, description, excerpt, body, status, created_at, updated_at)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'published', ?, ?)`).bind(p.slug, p.title, p.cat, p.date, p.read, p.image, p.description, p.excerpt, p.body, now, now));
+  const all = [...new Set([...known, ...SEED_POSTS.map((p) => p.slug)])];
+  stmts.push(db.prepare(`INSERT OR REPLACE INTO meta (k, v) VALUES ('seed_slugs', ?)`).bind(JSON.stringify(all)));
+  stmts.push(db.prepare(`INSERT OR REPLACE INTO meta (k, v) VALUES ('seed_version', ?)`).bind(ver));
   await db.batch(stmts);
 }
 
