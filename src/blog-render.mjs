@@ -12,14 +12,21 @@ export const fmtDate = (d) => {
 };
 
 /* Vignette plus légère pour les photos Unsplash */
-export const thumb = (url, w = 700) => /images\.unsplash\.com/.test(url || '') ? url.replace(/([?&])w=\d+/, `$1w=${w}`) : url;
+const LOCAL_W = [400, 800, 1200, 1600];
+export const thumb = (url, w = 700) => {
+  url = url || '';
+  if (/images\.unsplash\.com/.test(url)) return url.replace(/([?&])w=\d+/, `$1w=${w}`);
+  const m = url.match(/^(\/assets\/img\/photos\/[a-z]+)-\d+\.webp$/);
+  if (m) return `${m[1]}-${LOCAL_W.find((x) => x >= w) || 1600}.webp`;
+  return url;
+};
 
 export function createBlogRenderer({ ic, SITE }) {
   const abs = (p) => SITE.url + p;
   const contactUrl = (service) => '/contact/' + (service ? '?service=' + encodeURIComponent(service) : '');
 
   const img = (url, w, alt, cls, eager = false) => url
-    ? `<img src="${esc(thumb(url, w))}" alt="${esc(alt)}" class="${cls}" ${eager ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async" onerror="this.remove()">`
+    ? `<img src="${esc(thumb(url, w))}" alt="${esc(alt)}" class="${cls}" ${eager ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async" data-fallback>`
     : '';
 
   function breadcrumb(items) {

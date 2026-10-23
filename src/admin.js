@@ -6,7 +6,9 @@
 (function () {
   'use strict';
 
-  var CFG = window.ELMEA_ADMIN || { icons: {}, photos: [], categories: [], pages: {} };
+  var CFG = { icons: {}, photos: [], categories: [], pages: {}, site: {} };
+  try { CFG = JSON.parse(document.getElementById('adminConfig').textContent); } catch (e) {}
+  document.addEventListener('error', function (e) { if (e.target && e.target.tagName === 'IMG' && e.target.hasAttribute('data-fallback')) e.target.remove(); }, true);
   var $ = function (s, el) { return (el || document).querySelector(s); };
   var $$ = function (s, el) { return Array.prototype.slice.call((el || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
@@ -78,7 +80,8 @@
           '<li>Onglet <strong>Deployments</strong> → dernier déploiement → <strong>Retry deployment</strong>.</li></ol>' +
           '<p class="mt-5 text-sm text-ink/60">Les tables se créent toutes seules et les 6 articles existants y sont recopiés automatiquement.</p>'
         : '<p class="mt-4 text-ink/75 leading-relaxed">L’API du site ne répond pas (' + esc(e && e.message) + '). L’espace admin fonctionne uniquement une fois le site déployé sur Cloudflare Pages.</p>') +
-      '<button type="button" class="btn-primary mt-8" onclick="location.reload()">' + icon('refresh-cw') + ' Réessayer</button></div>';
+      '<button type="button" class="btn-primary mt-8" data-reload>' + icon('refresh-cw') + ' Réessayer</button></div>';
+    $('[data-reload]', view).addEventListener('click', function () { location.reload(); });
   }
 
   function boot() {
@@ -397,7 +400,7 @@
       $('#postsList').innerHTML = list.length ? list.map(function (p) {
         var draft = p.status !== 'published';
         return '<article class="card p-4 sm:p-5 flex gap-4 items-center">' +
-          '<div class="hidden sm:block w-28 h-20 rounded-xl overflow-hidden img-fallback shrink-0">' + (p.image ? '<img src="' + esc(thumbUrl(p.image)) + '" alt="" class="w-full h-full object-cover" loading="lazy" onerror="this.remove()">' : '') + '</div>' +
+          '<div class="hidden sm:block w-28 h-20 rounded-xl overflow-hidden img-fallback shrink-0">' + (p.image ? '<img src="' + esc(thumbUrl(p.image)) + '" alt="" class="w-full h-full object-cover" loading="lazy" data-fallback>' : '') + '</div>' +
           '<div class="min-w-0 flex-1">' +
           '<div class="flex flex-wrap items-center gap-2 text-xs text-ink/55">' +
           '<span class="px-2 py-0.5 rounded-full font-semibold ' + (draft ? 'bg-cream-dark text-ink/70' : 'bg-sage-light text-forest') + '">' + (draft ? 'Brouillon' : 'Publié') + '</span>' +
@@ -516,7 +519,7 @@
       '<button type="button" id="imgRemove" class="btn-outline !px-3 !py-2 text-sm">' + icon('x') + '<span class="sr-only">Retirer l’image</span></button></div>' +
       '<p class="mt-3 text-xs text-ink/55">Ou choisissez une photo d’illustration :</p>' +
       '<div class="mt-2 grid grid-cols-4 gap-1.5">' + CFG.photos.map(function (p) {
-        return '<button type="button" data-photo="' + esc(p.url) + '" title="' + esc(p.label) + '" class="aspect-square rounded-lg overflow-hidden img-fallback ring-offset-2 hover:ring-2 hover:ring-terra/50"><img src="' + esc(p.thumb) + '" alt="' + esc(p.label) + '" class="w-full h-full object-cover" loading="lazy" onerror="this.remove()"></button>';
+        return '<button type="button" data-photo="' + esc(p.url) + '" title="' + esc(p.label) + '" class="aspect-square rounded-lg overflow-hidden img-fallback ring-offset-2 hover:ring-2 hover:ring-terra/50"><img src="' + esc(p.thumb) + '" alt="' + esc(p.label) + '" class="w-full h-full object-cover" loading="lazy" data-fallback></button>';
       }).join('') + '</div></section>' +
 
       '<section class="card p-5"><div class="flex items-baseline justify-between"><label for="fExcerpt" class="font-semibold text-forest text-sm">Résumé</label><span id="cExcerpt" class="text-xs text-ink/45"></span></div>' +
@@ -551,7 +554,7 @@
       $('#gDesc').textContent = fDesc.value || fExcerpt.value || plain().slice(0, 160) || 'La description apparaîtra ici.';
     };
     var drawImage = function () {
-      $('#imgPreview').innerHTML = image ? '<img src="' + esc(image) + '" alt="" class="w-full h-full object-cover" onerror="this.remove()">' : 'Aucune image';
+      $('#imgPreview').innerHTML = image ? '<img src="' + esc(image) + '" alt="" class="w-full h-full object-cover" data-fallback>' : 'Aucune image';
       $$('[data-photo]').forEach(function (b) { b.classList.toggle('ring-2', b.getAttribute('data-photo') === image); b.classList.toggle('ring-terra', b.getAttribute('data-photo') === image); });
     };
     autoSize(); refresh(); drawImage();

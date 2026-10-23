@@ -1,6 +1,6 @@
 /* GET / PUT / DELETE /api/admin/posts/:slug */
 import { getPost } from '../../../_lib/db.js';
-import { validatePost } from '../../../_lib/posts.js';
+import { pingIndexNow, validatePost } from '../../../_lib/posts.js';
 import { json } from '../../../_lib/util.js';
 
 export async function onRequestGet({ params, data }) {
@@ -8,7 +8,8 @@ export async function onRequestGet({ params, data }) {
   return post ? json({ post }) : json({ error: 'notfound', message: 'Article introuvable.' }, 404);
 }
 
-export async function onRequestPut({ request, params, data }) {
+export async function onRequestPut(ctx) {
+  const { request, params, data } = ctx;
   const db = data.db;
   const current = await getPost(db, params.slug);
   if (!current) return json({ error: 'notfound', message: 'Article introuvable.' }, 404);
@@ -19,6 +20,7 @@ export async function onRequestPut({ request, params, data }) {
   }
   await db.prepare(`UPDATE posts SET slug = ?, title = ?, cat = ?, date = ?, read_min = ?, image = ?, description = ?, excerpt = ?, body = ?, status = ?, updated_at = ? WHERE slug = ?`)
     .bind(post.slug, post.title, post.cat, post.date, post.read, post.image, post.description, post.excerpt, post.body, post.status, new Date().toISOString(), current.slug).run();
+  if (post.status === 'published') pingIndexNow(ctx, post.slug);
   return json({ ok: true, post: await getPost(db, post.slug) });
 }
 

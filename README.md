@@ -54,8 +54,22 @@ npm run build
 npx wrangler pages dev dist --d1 DB=elmea-db   # site + fonctions + base D1 locale → http://localhost:8788
 ```
 
+## Sécurité
+- En-têtes stricts générés au build dans `dist/_headers` : CSP (scripts du site uniquement), HSTS, anti-clickjacking, `nosniff`, COOP.
+- Admin : mot de passe haché (PBKDF2), cookie de session signé HttpOnly/SameSite=Strict, blocage après 8 essais, contrôle de l'origine des requêtes (anti-CSRF), déconnexion = révocation de toutes les sessions, HTML des articles filtré, signature des images vérifiée.
+- `/.well-known/security.txt` pour signaler une faille.
+- Recommandé : protéger `/admin/` avec **Cloudflare Zero Trust → Access** (gratuit jusqu'à 50 utilisateurs) : code reçu par email en plus du mot de passe.
+
+## SEO & IA
+- `SITE_URL` (variable Cloudflare) = adresse officielle → canonical, sitemap, données structurées, llms.txt. Les adresses `*.pages.dev` passent automatiquement en `noindex` dès qu'un domaine est configuré.
+- Pages locales : Monteux, Carpentras, Avignon. Données structurées : LocalBusiness, Person, Service, FAQPage, BreadcrumbList, BlogPosting.
+- Photos téléchargées au build en WebP et servies depuis le site (rapidité + aucun appel tiers).
+- `robots.txt` autorise explicitement Google, Bing, ChatGPT (OAI-SearchBot, GPTBot, ChatGPT-User), Gemini (Google-Extended), Perplexity, Claude, Apple.
+- `llms.txt` : fiche d'identité de l'entreprise pour les assistants IA.
+- IndexNow : chaque article publié depuis l'admin est signalé instantanément à Bing (index utilisé par ChatGPT).
+
 ## ✅ À faire avant la mise en ligne
-1. **Domaine** : `SITE.url` dans `src/config.mjs`.
+1. **Domaine** : variable `SITE_URL` dans Cloudflare (Paramètres → Variables et secrets), ex. `https://www.elmea-solutions.fr`, puis redéployer.
 2. **Facebook** : `SITE.social.facebook` dans `src/config.mjs` → affiche le fil de la page sur l'accueil (chargé seulement après clic du visiteur, RGPD).
 3. **Formulaire** : clé gratuite [web3forms.com](https://web3forms.com) → `form: { endpoint: 'https://api.web3forms.com/submit', accessKey: 'LA_CLÉ' }`.
 4. **Mentions légales** : SIRET, adresse, régime de TVA dans `SITE.legal`.

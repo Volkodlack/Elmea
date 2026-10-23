@@ -7,8 +7,43 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { icons } from 'lucide';
 import { ARTICLES } from './src/articles.mjs';
-import { SITE, PHOTOS, PHOTO_LABELS } from './src/config.mjs';
+import { SITE, PHOTO_SOURCES, PHOTO_WIDTHS, PHOTO_LABELS } from './src/config.mjs';
 import { createBlogRenderer } from './src/blog-render.mjs';
+
+/* ---------- Adresse officielle (variable SITE_URL dans Cloudflare) ---------- */
+SITE.url = (process.env.SITE_URL || SITE.url).trim().replace(/\/+$/, '');
+const SITE_HOST = new URL(SITE.url).host;
+
+/* ---------- Photos : téléchargées une fois en WebP puis servies localement ---------- */
+const PHOTO_DIR = 'public/assets/img/photos';
+const unsplash = (id, w, fm = '') => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=72${fm ? '&fm=' + fm : ''}`;
+const LOCAL = {};
+async function fetchPhotos() {
+  fs.mkdirSync(PHOTO_DIR, { recursive: true });
+  const jobs = [];
+  for (const [key, id] of Object.entries(PHOTO_SOURCES)) {
+    for (const w of PHOTO_WIDTHS) {
+      const file = path.join(PHOTO_DIR, `${key}-${w}.webp`);
+      if (fs.existsSync(file) && fs.statSync(file).size > 1000) continue;
+      jobs.push((async () => {
+        try {
+          const res = await fetch(unsplash(id, w, 'webp'), { signal: AbortSignal.timeout(20000) });
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          fs.writeFileSync(file, Buffer.from(await res.arrayBuffer()));
+        } catch (e) { console.warn(`⚠ Photo ${key}-${w} non téléchargée (${e.message}) : lien Unsplash utilisé en secours.`); }
+      })());
+    }
+  }
+  await Promise.all(jobs);
+  for (const key of Object.keys(PHOTO_SOURCES)) {
+    LOCAL[key] = PHOTO_WIDTHS.every((w) => fs.existsSync(path.join(PHOTO_DIR, `${key}-${w}.webp`)));
+  }
+}
+await fetchPhotos();
+const nearestW = (w) => PHOTO_WIDTHS.find((x) => x >= w) || PHOTO_WIDTHS[PHOTO_WIDTHS.length - 1];
+const PHOTOS = Object.fromEntries(Object.keys(PHOTO_SOURCES).map((k) => [k,
+  (w) => LOCAL[k] ? `/assets/img/photos/${k}-${nearestW(w)}.webp` : unsplash(PHOTO_SOURCES[k], w)]));
+const ANY_REMOTE = Object.values(LOCAL).some((v) => !v);
 
 const FORFAITS = [
   { id: 'essentiel', name: 'Essentiel', price: 490, icon: 'leaf', tagline: 'Le suivi de vos factures, sans avoir à y penser.',
@@ -26,6 +61,58 @@ const MISSIONS = [
   { group: 'Ventes & facturation', icon: 'receipt-euro', items: ['Devis', 'Facturation', 'Tableau d’échéances', 'Relances clients', 'Suivi des règlements', 'Reporting mensuel'] },
   { group: 'Administratif & RH', icon: 'folder-open', items: ['Gestion des mails', 'Gestion administrative courante', 'Assurances & mutuelles', 'Plannings salariés', 'Variables de paie', 'Réservations de déplacements'] },
   { group: 'Appels d’offres', icon: 'file-text', ao: true, items: ['Veille & suivi des échéances', 'Montage du dossier (DC1, DC2…)', 'Mémoire technique', 'Suivi des réponses'] }
+];
+
+/* Pages locales (référencement « secrétariat indépendant + ville ») */
+const CITIES = [
+  {
+    slug: 'monteux', name: 'Monteux', prep: 'à', path: '/secretariat-independant-monteux/', photo: 'office',
+    title: 'Secrétariat indépendant à Monteux (84) – gestion administrative & ADV | Élméa Solutions',
+    description: 'Assistante administrative indépendante basée à Monteux : facturation, relances, variables de paie, appels d’offres BTP. Intervention sur site dans les Sorgues du Comtat ou à distance.',
+    h1: 'Secrétariat indépendant à Monteux',
+    lead: 'Élméa Solutions est installée à <strong class="text-forest">Monteux</strong>. Je prends en charge l’administratif des TPE, PME et artisans de la commune et des environs, directement dans vos locaux ou à distance.',
+    local: [
+      ['Une assistante à deux pas', 'Basée à Monteux, je me déplace facilement dans les communes voisines des Sorgues du Comtat : Pernes-les-Fontaines, Sorgues, Althen-des-Paluds, Bédarrides… Une présence physique quand c’est utile, un suivi à distance le reste du temps.'],
+      ['Spécialisée BTP et PME', 'J’accompagne notamment les entreprises du bâtiment : facturation des situations de travaux, suivi des paniers repas et des déplacements des équipes, dossiers d’appels d’offres. Je connais vos contraintes de chantier.'],
+      ['Un fonctionnement souple', 'Par exemple une demi-journée par semaine sur site, quelques heures à distance, ou un renfort ponctuel en période chargée : la formule s’adapte à votre rythme.']
+    ],
+    faq: [
+      { q: 'Vous déplacez-vous dans nos locaux à Monteux ?', a: 'Oui. Étant basée à Monteux, j’interviens sur site dans la commune et les environs, selon une fréquence définie ensemble. Une partie du travail peut aussi se faire à distance.' },
+      { q: 'Travaillez-vous avec les entreprises des communes voisines ?', a: 'Oui : Pernes-les-Fontaines, Sorgues, Althen-des-Paluds, Bédarrides, Entraigues-sur-la-Sorgue, mais aussi Carpentras et Avignon. Au-delà, je travaille à distance.' }
+    ]
+  },
+  {
+    slug: 'carpentras', name: 'Carpentras', prep: 'à', path: '/secretariat-independant-carpentras/', photo: 'docs',
+    title: 'Secrétariat indépendant à Carpentras – assistante administrative externalisée | Élméa Solutions',
+    description: 'Gestion administrative externalisée pour les entreprises de Carpentras et du Comtat Venaissin : ADV, facturation, relances, suivi RH, appels d’offres. Sur site ou à distance.',
+    h1: 'Secrétariat indépendant à Carpentras',
+    lead: 'Vous dirigez une entreprise à <strong class="text-forest">Carpentras</strong> ou dans le Comtat Venaissin ? Je vous libère de la facturation, des relances, du suivi RH et des dossiers d’appels d’offres, en intervenant dans vos locaux ou à distance.',
+    local: [
+      ['Tout près de chez vous', 'Basée à Monteux, commune voisine de Carpentras, je peux venir régulièrement dans vos locaux pour faire le point, récupérer les documents et organiser le classement.'],
+      ['Commerces, artisans, PME', 'Du commerce de centre-ville à l’entreprise du bâtiment, les besoins varient : devis et factures, relances clients, suivi des échéances, gestion des mails. Vous ne déléguez que ce qui vous fait perdre du temps.'],
+      ['Marchés publics du territoire', 'Les collectivités du Comtat Venaissin publient régulièrement des consultations. Je monte vos dossiers de candidature et rédige votre mémoire technique, toujours avec votre validation avant envoi.']
+    ],
+    faq: [
+      { q: 'Combien coûte une assistante administrative externalisée à Carpentras ?', a: 'Les formules présentées sur le site vont de 490 à 1 200 € HT par mois à titre indicatif. Tout est modulable : le devis est établi selon les missions retenues et votre volume.' },
+      { q: 'Pouvez-vous intervenir uniquement à distance ?', a: 'Oui. De nombreuses missions (facturation, relances, appels d’offres) se gèrent très bien à distance, avec des outils de partage de documents sécurisés.' }
+    ]
+  },
+  {
+    slug: 'avignon', name: 'Avignon', prep: 'à', path: '/secretariat-independant-avignon/', photo: 'sign',
+    title: 'Secrétariat indépendant à Avignon – gestion administrative, ADV, appels d’offres | Élméa Solutions',
+    description: 'Assistante administrative indépendante pour les PME et entreprises du BTP d’Avignon et du Grand Avignon : facturation, relances, variables de paie, mémoire technique et appels d’offres.',
+    h1: 'Secrétariat indépendant à Avignon',
+    lead: 'Pour les PME, artisans et entreprises du BTP d’<strong class="text-forest">Avignon</strong> et du Grand Avignon, je prends en charge l’administration des ventes, la gestion administrative et RH et la réponse aux appels d’offres.',
+    local: [
+      ['Sur site ou à distance', 'Avignon est dans ma zone d’intervention régulière depuis Monteux. Je viens dans vos locaux quand c’est nécessaire et je gère le reste à distance.'],
+      ['Appels d’offres publics', 'Ville, intercommunalité, département, bailleurs sociaux : les acheteurs publics du bassin avignonnais publient de nombreux marchés de travaux. Je prépare les pièces administratives (DC1, DC2, attestations) et rédige votre mémoire technique à partir de vos informations.'],
+      ['Un vrai relais administratif', 'Ancienne assistante de direction, forte de 15 ans d’expérience dans l’administratif, je m’intègre à votre organisation : vos outils, vos process, votre façon de travailler.']
+    ],
+    faq: [
+      { q: 'Intervenez-vous dans tout le Grand Avignon ?', a: 'Oui, sur site à Avignon et dans les communes environnantes selon les besoins, et à distance partout ailleurs.' },
+      { q: 'Pouvez-vous nous aider à répondre à un marché public à Avignon ?', a: 'Oui : analyse du dossier de consultation, montage du dossier de candidature et rédaction du mémoire technique. Vous apportez l’expertise chantier et rien n’est envoyé sans votre accord.' }
+    ]
+  }
 ];
 
 const FAQ = [
@@ -68,9 +155,9 @@ function ic(name, cls = 'w-5 h-5') {
 
 function photo(key, w, alt, cls = 'w-full h-full object-cover', eager = false) {
   const src = PHOTOS[key];
-  const s = typeof src === 'function' ? src(w) : src;
-  const s2 = typeof src === 'function' ? ` srcset="${src(Math.round(w / 2))} ${Math.round(w / 2)}w, ${s} ${w}w" sizes="(max-width: 768px) 100vw, ${w}px"` : '';
-  return `<img src="${s}"${s2} alt="${esc(alt)}" class="${cls}" ${eager ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async" onerror="this.remove()">`;
+  const small = nearestW(Math.round(w / 2)), big = nearestW(w);
+  const srcset = small !== big ? ` srcset="${src(small)} ${small}w, ${src(big)} ${big}w" sizes="(max-width: 768px) 100vw, ${big}px"` : '';
+  return `<img src="${src(w)}"${srcset} alt="${esc(alt)}" class="${cls}" ${eager ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async" data-fallback>`;
 }
 
 const fmtDate = (d) => new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -170,6 +257,10 @@ function footer() {
         <li><a href="/#forfaits" class="hover:text-terra-light">Forfaits &amp; tarifs</a></li>
         <li><a href="/blog/" class="hover:text-terra-light">Blog</a></li>
       </ul>
+      <p class="text-cream font-semibold mt-6 mb-3">Zones d’intervention</p>
+      <ul class="space-y-2 text-sm">
+        ${CITIES.map((c) => `<li><a href="${c.path}" class="hover:text-terra-light">Secrétariat indépendant ${c.prep} ${c.name}</a></li>`).join('\n        ')}
+      </ul>
     </div>
     <div>
       <p class="text-cream font-semibold mb-4">Contact</p>
@@ -188,7 +279,7 @@ function footer() {
   </div>
   <div class="border-t border-white/10">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col md:flex-row justify-between gap-3 text-xs text-cream/60">
-      <p>© ${new Date().getFullYear()} ${SITE.name} – ${SITE.owner}. Tous droits réservés.</p>
+      <p>© ${new Date().getFullYear()} ${SITE.name} – ${SITE.legal.publisher}. Tous droits réservés.</p>
       <p class="flex flex-wrap gap-x-4 gap-y-1"><a href="/mentions-legales/" class="hover:text-cream">Mentions légales</a><a href="/confidentialite/" class="hover:text-cream">Politique de confidentialité</a><button type="button" data-consent-open class="hover:text-cream underline-offset-2">Gérer les cookies</button><a href="/sitemap.xml" class="hover:text-cream">Plan du site</a></p>
     </div>
   </div>
@@ -257,8 +348,7 @@ function layout({ path: p, navPath, title, description, body, ld = [], ogType = 
   <link rel="manifest" href="/site.webmanifest">
   <link rel="preload" href="/assets/fonts/cormorant-garamond-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/assets/fonts/plus-jakarta-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preconnect" href="https://images.unsplash.com">
-  <link rel="stylesheet" href="/assets/css/style.css?v=${SITE.buildDate}">
+${ANY_REMOTE ? '  <link rel="preconnect" href="https://images.unsplash.com">\n' : ''}${SITE.verification.google ? `  <meta name="google-site-verification" content="${esc(SITE.verification.google)}">\n` : ''}${SITE.verification.bing ? `  <meta name="msvalidate.01" content="${esc(SITE.verification.bing)}">\n` : ''}  <link rel="stylesheet" href="/assets/css/style.css?v=${SITE.buildDate}">
   ${ld.map(jsonld).join('\n  ')}${extraHead}
 </head>
 <body>
@@ -276,6 +366,13 @@ ${footer()}
 /* ---------------------------------------------------------
    4. BLOCS RÉUTILISABLES
 --------------------------------------------------------- */
+const personLd = () => ({
+  '@context': 'https://schema.org', '@type': 'Person', name: SITE.owner, jobTitle: SITE.role,
+  worksFor: { '@id': BUSINESS_ID }, url: SITE.url + '/',
+  knowsAbout: ['Gestion administrative', 'Administration des ventes', 'Facturation', 'Variables de paie', 'Appels d’offres', 'Mémoire technique BTP'],
+  hasCredential: { '@type': 'EducationalOccupationalCredential', name: 'BTS Gestion de la PME' }
+});
+
 const socialSection = () => {
   const fb = SITE.social.facebook;
   const right = fb ? `
@@ -497,7 +594,7 @@ const add = (p, html, opts = {}) => pages.push({ path: p, html, ...opts });
         ['hourglass', 'Du temps retrouvé', 'Concentrez-vous sur vos clients, vos chantiers et le développement de votre entreprise.'],
         ['trending-up', 'Trésorerie améliorée', 'Factures envoyées à temps, relances régulières : vos délais de paiement raccourcissent.'],
         ['lock', 'Confidentialité', 'Discrétion absolue sur vos données clients, salariés et financières.'],
-        ['map-pin', 'Sur site ou à distance', 'Intervention à Monteux, Carpentras, Avignon et alentours, ou 100 % à distance.']
+        ['map-pin', 'Sur site ou à distance', 'Intervention à <a href="/secretariat-independant-monteux/" class="underline underline-offset-2 hover:text-terra">Monteux</a>, <a href="/secretariat-independant-carpentras/" class="underline underline-offset-2 hover:text-terra">Carpentras</a>, <a href="/secretariat-independant-avignon/" class="underline underline-offset-2 hover:text-terra">Avignon</a> et alentours, ou 100 % à distance.']
       ].map(([i, t, d]) => `<div class="reveal card p-6">${ic(i, 'w-7 h-7 text-terra')}<h3 class="font-semibold text-forest mt-4">${t}</h3><p class="text-sm text-ink/70 mt-2">${d}</p></div>`).join('\n      ')}
     </div>
   </div>
@@ -516,6 +613,15 @@ ${valuesBand()}
       <p class="mt-5 text-ink/75 leading-relaxed">Forte de <strong class="text-forest">15 ans d’expérience dans l’administratif</strong>, titulaire d’un <strong class="text-forest">BTS Gestion de la PME</strong> et ancienne <strong class="text-forest">assistante de direction</strong>, j’ai créé Élméa Solutions pour offrir aux dirigeants de PME et aux entreprises du BTP un soutien administratif fiable, réactif et sur mesure.</p>
       <p class="mt-4 text-ink/75 leading-relaxed">Ma vision à la fois globale et opérationnelle de l’entreprise me permet de comprendre rapidement vos enjeux et de m’intégrer à votre organisation, sur site comme à distance.</p>
       <p class="font-script text-terra text-4xl mt-5">Manon</p>
+      <h3 class="sr-only">Élméa Solutions en bref</h3>
+      <dl class="mt-8 grid sm:grid-cols-2 gap-x-8 gap-y-4 text-sm border-t border-forest/10 pt-6">
+        <div><dt class="text-ink/50">Activité</dt><dd class="text-forest font-medium mt-0.5">Gestion administrative externalisée, ADV, appels d’offres</dd></div>
+        <div><dt class="text-ink/50">Pour qui</dt><dd class="text-forest font-medium mt-0.5">TPE, PME, artisans et entreprises du BTP</dd></div>
+        <div><dt class="text-ink/50">Basée à</dt><dd class="text-forest font-medium mt-0.5">${SITE.city} (Vaucluse, 84)</dd></div>
+        <div><dt class="text-ink/50">Intervention</dt><dd class="text-forest font-medium mt-0.5">Sur site (Monteux, Carpentras, Avignon) ou à distance</dd></div>
+        <div><dt class="text-ink/50">Tarifs</dt><dd class="text-forest font-medium mt-0.5">Formules modulables, à titre indicatif de 490 à 1 200 € HT/mois</dd></div>
+        <div><dt class="text-ink/50">Contact</dt><dd class="text-forest font-medium mt-0.5"><a href="tel:${SITE.phoneIntl}" class="hover:text-terra">${SITE.phone}</a></dd></div>
+      </dl>
     </div>
   </div>
 </section>
@@ -565,7 +671,8 @@ ${ctaBlock()}`;
     path: '/',
     title: 'Gestion administrative externalisée, ADV & appels d’offres BTP | Élméa Solutions – Monteux',
     description: 'Secrétariat indépendant et gestion administrative externalisée pour PME et BTP : ADV, facturation, relances, variables de paie, mémoire technique et appels d’offres. Monteux, Carpentras, Avignon.',
-    body, ld: [businessLd(), faqLd(FAQ), { '@context': 'https://schema.org', '@type': 'WebSite', name: SITE.name, url: SITE.url + '/', inLanguage: 'fr-FR' }]
+    body, ld: [businessLd(), faqLd(FAQ), personLd(), { '@context': 'https://schema.org', '@type': 'WebSite', name: SITE.name, url: SITE.url + '/', inLanguage: 'fr-FR', publisher: { '@id': BUSINESS_ID } }],
+    extraHead: LOCAL.office ? `\n  <link rel="preload" as="image" href="${PHOTOS.office(1200)}" imagesrcset="${PHOTOS.office(800)} 800w, ${PHOTOS.office(1200)} 1200w" imagesizes="(max-width: 768px) 100vw, 1200px" fetchpriority="high">` : ''
   }));
 }
 
@@ -778,6 +885,40 @@ ${ctaBlock('Un appel d’offres en vue ?', 'Envoyez-moi le lien de la consultati
   });
 }
 
+/* ===== PAGES LOCALES ===== */
+CITIES.forEach((c) => {
+  const crumbs = [['Accueil', '/'], [c.h1, c.path]];
+  const others = CITIES.filter((x) => x.slug !== c.slug);
+  const body = `
+${pageHero({ crumbs, eyebrow: 'Zone d’intervention · Vaucluse', h1: c.h1, lead: c.lead, photoKey: c.photo, alt: 'Gestion administrative externalisée – ' + c.name, cta: 'Parler de mon besoin', service: 'Autre / besoin sur mesure' })}
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+  <div class="grid md:grid-cols-3 gap-6">
+    ${c.local.map(([t, d]) => `<div class="reveal card p-8"><h2 class="font-serif text-2xl text-forest font-semibold">${t}</h2><p class="mt-3 text-ink/75 leading-relaxed">${d}</p></div>`).join('\n    ')}
+  </div>
+  <div class="mt-16 text-center max-w-2xl mx-auto reveal">
+    <p class="eyebrow">Mes services ${c.prep} ${c.name}</p>
+    <h2 class="h-section mt-3">Ce que je peux prendre en charge</h2>
+  </div>
+  <div class="mt-10 grid md:grid-cols-3 gap-6">
+    ${[['/adv/', 'receipt-euro', 'ADV &amp; facturation', 'Devis, factures, situations de travaux, échéancier et relances d’impayés.'],
+       ['/gestion-administrative/', 'folder-open', 'Gestion administrative &amp; RH', 'Mails, assurances, mutuelles, plannings, déplacements et variables de paie.'],
+       ['/appels-offres/', 'file-text', 'Appels d’offres BTP', 'Dossier de candidature, DC1, DC2 et mémoire technique, avec votre validation.']].map(([h, i, t, d]) =>
+      `<a href="${h}" class="reveal card p-7 group hover:-translate-y-0.5 transition">${ic(i, 'w-7 h-7 text-terra')}<h3 class="font-semibold text-forest text-lg mt-4">${t}</h3><p class="text-sm text-ink/70 mt-2">${d}</p><span class="mt-4 inline-flex items-center gap-2 text-terra text-sm font-medium">En savoir plus ${ic('arrow-right', 'w-4 h-4')}</span></a>`).join('\n    ')}
+  </div>
+  <p class="mt-10 text-center text-ink/70 reveal">Formules modulables, à titre indicatif de 490 à 1 200 € HT par mois – <a href="/#forfaits" class="text-terra underline underline-offset-4">voir les formules et composer la vôtre</a>.</p>
+</section>
+<section class="max-w-3xl mx-auto px-4 sm:px-6 pb-4"><h2 class="font-serif text-3xl text-forest font-semibold text-center mb-8 reveal">Questions fréquentes</h2>${faqBlock(c.faq)}
+  <p class="mt-10 text-center text-sm text-ink/60">J’interviens aussi ${others.map((o) => `<a href="${o.path}" class="text-terra underline underline-offset-2">${o.prep} ${o.name}</a>`).join(' et ')}.</p>
+</section>
+${ctaBlock('Parlons de votre entreprise', 'Premier échange gratuit et sans engagement, ' + c.prep + ' ' + c.name + ' ou par téléphone.', 'Autre / besoin sur mesure')}`;
+  add(c.path, layout({ path: c.path, title: c.title, description: c.description, body,
+    ld: [breadcrumbLd(crumbs), faqLd(c.faq), {
+      '@context': 'https://schema.org', '@type': 'Service', name: 'Secrétariat indépendant et gestion administrative externalisée ' + c.prep + ' ' + c.name,
+      serviceType: 'Gestion administrative externalisée', provider: { '@id': BUSINESS_ID }, url: abs(c.path),
+      areaServed: { '@type': 'City', name: c.name, containedInPlace: { '@type': 'AdministrativeArea', name: 'Vaucluse' } }
+    }] }), { priority: '0.8' });
+});
+
 /* ===== PAGES LÉGALES ===== */
 const legalPage = (p, h1, title, description, inner) => {
   const crumbs = [['Accueil', '/'], [h1, p]];
@@ -799,7 +940,7 @@ legalPage('/mentions-legales/', 'Mentions légales', 'Mentions légales | Élmé
 <p>${SITE.legal.host}</p>
 <h2>Propriété intellectuelle</h2>
 <p>L’ensemble des contenus de ce site (textes, logo, charte graphique, mise en page) est la propriété exclusive d’${SITE.name}, sauf mention contraire. Toute reproduction, totale ou partielle, sans autorisation écrite préalable est interdite.</p>
-<p>Crédits photos : <a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a> (licence Unsplash).</p>
+<p>Crédits photos : <a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a> (licence Unsplash). Logo et charte graphique : propriété d’${SITE.name}.</p>
 <h2>Responsabilité</h2>
 <p>Les informations publiées sur ce site, notamment dans les articles du blog, sont fournies à titre indicatif et général. Elles ne constituent pas un conseil juridique, fiscal ou social personnalisé. ${SITE.name} ne saurait être tenue responsable de l’usage qui en est fait.</p>
 <h2>Données personnelles</h2>
@@ -822,7 +963,7 @@ legalPage('/confidentialite/', 'Politique de confidentialité', 'Politique de co
 <h2>Mesure d’audience</h2>
 <p>Ce site utilise une mesure d’audience interne, <strong>sans cookie</strong> et anonyme : pages consultées, site de provenance, type d’appareil et pays. Votre adresse IP n’est jamais enregistrée ; un identifiant technique non réversible, renouvelé chaque jour, permet seulement de compter les visites. Ces statistiques ne sont ni partagées ni croisées avec d’autres données, et sont supprimées au bout de 13 mois.</p>
 <h2>Cookies et contenus tiers</h2>
-<p>Ce site ne dépose aucun cookie publicitaire. Les polices de caractères sont hébergées sur le site lui-même. Certaines images d’illustration sont chargées depuis le service Unsplash, qui peut recevoir votre adresse IP lors de leur affichage.</p>
+<p>Ce site ne dépose aucun cookie publicitaire. Les polices de caractères sont hébergées sur le site lui-même. ${ANY_REMOTE ? 'Certaines images d’illustration sont chargées depuis le service Unsplash, qui peut recevoir votre adresse IP lors de leur affichage.' : 'Les images sont également hébergées sur le site : aucune donnée n’est transmise à un service tiers lors de votre navigation, sauf si vous choisissez d’afficher le fil Facebook.'}</p>
 <p>Le fil d’actualité Facebook de la page d’accueil n’est chargé que si vous cliquez sur « Afficher les publications ». Facebook (Meta Platforms Ireland Ltd.) peut alors déposer des cookies et collecter des données selon sa propre <a href="https://www.facebook.com/privacy/policy/" target="_blank" rel="noopener">politique de confidentialité</a>. Votre choix est mémorisé sur votre appareil pendant 6 mois.</p>
 <h2>Gérer vos choix</h2>
 <p>Lors de votre première visite, un bandeau vous permet d’accepter ou de refuser la mesure d’audience et les contenus Facebook, aussi simplement l’un que l’autre. Vous pouvez modifier vos choix à tout moment :</p>
@@ -872,7 +1013,69 @@ fs.writeFileSync(path.join(OUT, 'sitemap.xml'), `<?xml version="1.0" encoding="U
 ${pages.filter((p) => p.sitemap !== false).map((p) => `  <url><loc>${abs(p.path)}</loc><lastmod>${p.lastmod || SITE.buildDate}</lastmod><priority>${p.priority || prio(p.path)}</priority></url>`).join('\n')}
 </urlset>
 `);
-fs.writeFileSync(path.join(OUT, 'robots.txt'), `User-agent: *\nAllow: /\nDisallow: /merci/\nDisallow: /admin/\nDisallow: /api/\n\nSitemap: ${abs('/sitemap.xml')}\n`);
+/* robots.txt : moteurs de recherche ET assistants IA explicitement autorisés */
+const AI_BOTS = ['Googlebot', 'Bingbot', 'OAI-SearchBot', 'ChatGPT-User', 'GPTBot', 'Google-Extended', 'PerplexityBot', 'Perplexity-User', 'ClaudeBot', 'Claude-SearchBot', 'Applebot', 'Applebot-Extended', 'DuckAssistBot', 'MistralAI-User'];
+const DISALLOW = 'Allow: /\nDisallow: /admin/\nDisallow: /api/\nDisallow: /merci/\n';
+fs.writeFileSync(path.join(OUT, 'robots.txt'),
+  `# ${SITE.name} – ${SITE.url}\n# Moteurs de recherche et assistants IA bienvenus.\n\n` +
+  AI_BOTS.map((b) => `User-agent: ${b}\n${DISALLOW}`).join('\n') +
+  `\nUser-agent: *\n${DISALLOW}\nSitemap: ${abs('/sitemap.xml')}\n`);
+
+/* En-têtes HTTP : sécurité (CSP stricte) + non-indexation des adresses techniques */
+const formOrigin = SITE.form.endpoint ? new URL(SITE.form.endpoint).origin : '';
+const CSP = [
+  "default-src 'self'", "script-src 'self'", "style-src 'self' 'unsafe-inline'",
+  `img-src 'self' data: blob:${ANY_REMOTE ? ' https://images.unsplash.com' : ''}`, "font-src 'self'",
+  `connect-src 'self'${formOrigin ? ' ' + formOrigin : ''}`, 'frame-src https://www.facebook.com',
+  `form-action 'self' mailto:${formOrigin ? ' ' + formOrigin : ''}`, "base-uri 'self'", "object-src 'none'",
+  "frame-ancestors 'none'", 'upgrade-insecure-requests'
+].join('; ');
+let headers = fs.readFileSync(path.join(OUT, '_headers'), 'utf8').replace('/*\n', `/*\n  Content-Security-Policy: ${CSP}\n  Strict-Transport-Security: max-age=31536000; includeSubDomains\n  Cross-Origin-Opener-Policy: same-origin\n`);
+headers += `\n# Déploiements de test : jamais indexés\nhttps://:version.:project.pages.dev/*\n  X-Robots-Tag: noindex\n`;
+if (!SITE_HOST.endsWith('.pages.dev')) headers += `\n# Adresse technique : le site officiel est ${SITE.url}\nhttps://:project.pages.dev/*\n  X-Robots-Tag: noindex\n`;
+fs.writeFileSync(path.join(OUT, '_headers'), headers);
+
+/* security.txt (RFC 9116) */
+fs.mkdirSync(path.join(OUT, '.well-known'), { recursive: true });
+fs.writeFileSync(path.join(OUT, '.well-known/security.txt'),
+  `Contact: mailto:${SITE.email}\nExpires: ${new Date(Date.now() + 365 * 86400000).toISOString()}\nPreferred-Languages: fr, en\nCanonical: ${abs('/.well-known/security.txt')}\n`);
+
+/* IndexNow : fichier de clé (Bing, Yandex… → ChatGPT s'appuie sur l'index Bing) */
+fs.writeFileSync(path.join(OUT, `${SITE.indexNowKey}.txt`), SITE.indexNowKey);
+
+/* llms.txt : résumé structuré pour les assistants IA (ChatGPT, Gemini, Perplexity, Claude) */
+const strip = (h) => h.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&nbsp;/g, ' ');
+fs.writeFileSync(path.join(OUT, 'llms.txt'), `# ${SITE.name}
+
+> ${SITE.name} est une entreprise de gestion administrative externalisée (secrétariat indépendant) fondée par ${SITE.owner}, basée à ${SITE.city} (Vaucluse, 84, France). Elle prend en charge l’administration des ventes (ADV), la gestion administrative et RH et la réponse aux appels d’offres pour les TPE, PME, artisans et entreprises du BTP, sur site (Monteux, Carpentras, Avignon et alentours) ou à distance partout en France.
+
+## Informations clés
+- Fondatrice : ${SITE.owner} – ${SITE.role.toLowerCase()} ; 15 ans d’expérience dans l’administratif, BTS Gestion de la PME, ancienne assistante de direction
+- Localisation : ${SITE.city} (${SITE.postalCode}), Vaucluse, Provence-Alpes-Côte d’Azur
+- Zone d’intervention : ${SITE.areas.join(', ')} ; à distance dans toute la France
+- Clients : TPE, PME, artisans, entreprises du BTP
+- Contact : ${SITE.phone} · ${SITE.email} · ${abs('/contact/')}
+- Horaires : ${SITE.hours}
+- Valeurs : organisation, rigueur, confidentialité, réactivité
+
+## Services
+- [ADV & facturation](${abs('/adv/')}) : devis, facturation, suivi des échéances, relances d’impayés
+- [Gestion administrative & RH](${abs('/gestion-administrative/')}) : mails, assurances, mutuelles, formalités, réservations de déplacements, plannings, variables de paie (indemnités kilométriques, paniers repas, notes de frais)
+- [Appels d’offres BTP](${abs('/appels-offres/')}) : rédaction du mémoire technique, montage du dossier (DC1, DC2), suivi des échéances ; collaboration étroite, rien n’est envoyé sans l’accord du client
+
+## Tarifs (indicatifs, formules 100 % modulables)
+${FORFAITS.map((f) => `- ${f.name} : ${f.price} € HT/mois – ${f.items.map(strip).join(', ')}`).join('\n')}
+- Toutes les formules sont adaptables : le client choisit uniquement les missions utiles (ex. sans suivi RH, un seul dossier d’appel d’offres par mois) et le prix est ajusté sur devis gratuit.
+
+## Pages locales
+${CITIES.map((c) => `- [${c.h1}](${abs(c.path)})`).join('\n')}
+
+## Questions fréquentes
+${FAQ.map((f) => `- **${f.q}** ${f.a}`).join('\n')}
+
+## Blog
+${POSTS.map((a) => `- [${a.title}](${abs('/blog/' + a.slug + '/')}) : ${a.excerpt}`).join('\n')}
+`);
 fs.writeFileSync(path.join(OUT, 'site.webmanifest'), JSON.stringify({
   name: SITE.name, short_name: 'Élméa', start_url: '/', display: 'standalone', background_color: '#FAF6F1', theme_color: '#1F3A2E', lang: 'fr',
   icons: [{ src: '/assets/img/icon-180.png', sizes: '180x180', type: 'image/png' }, { src: '/assets/img/icon-512.png', sizes: '512x512', type: 'image/png' }]
@@ -932,13 +1135,13 @@ fs.writeFileSync(path.join(OUT, 'admin/index.html'), `<!DOCTYPE html>
 
 <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 hidden px-5 py-3 rounded-full shadow-soft text-sm font-medium" role="status" aria-live="polite"></div>
 
-<script>window.ELMEA_ADMIN = ${JSON.stringify({
+<script type="application/json" id="adminConfig">${JSON.stringify({
   photos: Object.keys(PHOTOS).map((k) => ({ key: k, label: PHOTO_LABELS[k] || k, url: PHOTOS[k](1200), thumb: PHOTOS[k](300) })),
   categories: [...new Set(ARTICLES.map((a) => a.cat))],
   pages: Object.fromEntries(pages.filter((p) => !p.file).map((p) => [p.path, ((p.html.match(/<title>([^<|]+)/) || [])[1] || p.path).trim().replace(/&amp;/g, '&')])),
   site: { name: SITE.name, url: SITE.url },
   icons: Object.fromEntries(['plus', 'pencil', 'trash-2', 'eye', 'arrow-left', 'image', 'bold', 'italic', 'heading-2', 'heading-3', 'list', 'list-ordered', 'quote', 'link', 'pilcrow', 'upload', 'check', 'x', 'users', 'file-text', 'mouse-pointer-click', 'message-circle', 'phone', 'mail', 'send', 'globe', 'smartphone', 'monitor', 'tablet', 'refresh-cw', 'external-link', 'eye-off', 'calendar', 'facebook', 'instagram', 'save', 'remove-formatting', 'database', 'layers', 'arrow-up-right', 'arrow-down-right', 'minus', 'search', 'chart-column', 'pen-line', 'circle-alert'].map((n) => (ic(n), [n, USED_ICONS[n]])))
-}).replace(/</g, '\\u003c')};</script>
+}).replace(/</g, '\\u003c')}</script>
 <script src="/assets/js/admin.js?v=${SITE.buildDate}" defer></script>
 </body>
 </html>
@@ -961,6 +1164,10 @@ export const TEMPLATE = ${JSON.stringify(TEMPLATE)};
 export const ICONS = ${JSON.stringify(USED_ICONS)};
 export const SEED_POSTS = ${JSON.stringify(POSTS.map(({ photo, ...p }) => ({ ...p, body: p.body.trim() })))};
 export const STATIC_PAGES = ${JSON.stringify(staticPages)};
+export const SITE_URL = ${JSON.stringify(SITE.url)};
+export const PHOTO_MAP = ${JSON.stringify(Object.fromEntries(Object.entries(PHOTO_SOURCES).filter(([k]) => LOCAL[k]).map(([k, id]) => [id, PHOTOS[k](1200)])))};
 `);
 
-console.log(`✔ ${pages.length} pages + admin générées dans dist/`);
+const todo = JSON.stringify(SITE.legal).match(/\[[^\]]+\]/g);
+if (todo) console.warn('⚠ Mentions légales à compléter dans src/config.mjs : ' + todo.join(', '));
+console.log(`✔ ${pages.length} pages + admin générées dans dist/ – adresse officielle : ${SITE.url}`);

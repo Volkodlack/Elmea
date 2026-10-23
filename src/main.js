@@ -5,6 +5,13 @@
   'use strict';
   document.documentElement.classList.remove('no-js');
 
+  /* Images introuvables : on les retire pour laisser apparaître le fond décoratif */
+  var dropImg = function (img) { if (img && img.hasAttribute('data-fallback')) img.remove(); };
+  document.addEventListener('error', function (e) { if (e.target && e.target.tagName === 'IMG') dropImg(e.target); }, true);
+  Array.prototype.forEach.call(document.querySelectorAll('img[data-fallback]'), function (img) {
+    if (img.complete && img.naturalWidth === 0 && img.currentSrc) dropImg(img);
+  });
+
   var $ = function (s, el) { return (el || document).querySelector(s); };
   var $$ = function (s, el) { return Array.prototype.slice.call((el || document).querySelectorAll(s)); };
 

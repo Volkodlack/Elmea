@@ -41,8 +41,17 @@ export async function clearFailures(db, ip) {
 const b64 = (s) => btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const unb64 = (s) => atob(s.replace(/-/g, '+').replace(/_/g, '/'));
 
+async function sessionVersion(db) {
+  return Number((await db.prepare(`SELECT v FROM meta WHERE k = 'session_ver'`).first())?.v || 1);
+}
+
+/* Déconnexion : invalide toutes les sessions ouvertes */
+export async function revokeSessions(db) {
+  await db.prepare(`INSERT INTO meta (k, v) VALUES ('session_ver', '2') ON CONFLICT(k) DO UPDATE SET v = CAST(v AS INTEGER) + 1`).run();
+}
+
 export async function createSessionCookie(db, env, request) {
-  const payload = b64(JSON.stringify({ exp: Date.now() + SESSION_DAYS * 86400000 }));
+  const payload = b64(JSON.stringify({ exp: Date.now() + SESSION_DAYS * 86400000, v: await sessionVersion(db) }));
   const sig = await hmac(await getSecret(db, env), payload);
   const secure = new URL(request.url).protocol === 'https:' ? '; Secure' : '';
   return `${COOKIE}=${payload}.${sig}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${SESSION_DAYS * 86400}${secure}`;
@@ -58,5 +67,8 @@ export async function isAuthenticated(request, db, env) {
   if (!payload || !sig) return false;
   const expected = await hmac(await getSecret(db, env), payload);
   if (!safeEqual(sig, expected)) return false;
-  try { return JSON.parse(unb64(payload)).exp > Date.now(); } catch { return false; }
+  try {
+    const data = JSON.parse(unb64(payload));
+    return data.exp > Date.now() && data.v === (await sessionVersion(db));
+  } catch { return false; }
 }

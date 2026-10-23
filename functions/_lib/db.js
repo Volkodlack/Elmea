@@ -1,7 +1,7 @@
 /* Base de données Cloudflare D1 (liaison « DB »).
    Les tables sont créées automatiquement au premier appel,
    et les articles d'origine du site y sont recopiés une seule fois. */
-import { SEED_POSTS } from './generated.js';
+import { SEED_POSTS, PHOTO_MAP } from './generated.js';
 import { randomHex, rowToPost } from './util.js';
 
 const SCHEMA = [
@@ -25,7 +25,7 @@ let secretCache = null;
 async function init(db) {
   await db.batch(SCHEMA.map((q) => db.prepare(q)));
   const seeded = await db.prepare(`SELECT v FROM meta WHERE k = 'seeded'`).first();
-  if (seeded) return;
+  if (seeded) return migratePhotos(db);
   const now = new Date().toISOString();
   const ins = `INSERT OR IGNORE INTO posts (slug, title, cat, date, read_min, image, description, excerpt, body, status, created_at, updated_at)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'published', ?, ?)`;
@@ -33,6 +33,19 @@ async function init(db) {
   stmts.push(db.prepare(`INSERT OR IGNORE INTO meta (k, v) VALUES ('secret', ?)`).bind(randomHex(32)));
   stmts.push(db.prepare(`INSERT OR IGNORE INTO meta (k, v) VALUES ('seeded', ?)`).bind(now));
   await db.batch(stmts);
+}
+
+/* Photos Unsplash → copies locales WebP (une seule fois par version) */
+async function migratePhotos(db) {
+  const ids = Object.keys(PHOTO_MAP);
+  if (!ids.length) return;
+  const ver = ids.join(',');
+  const done = await db.prepare(`SELECT v FROM meta WHERE k = 'photos_local'`).first();
+  if (done?.v === ver) return;
+  await db.batch([
+    ...ids.map((id) => db.prepare(`UPDATE posts SET image = ? WHERE instr(image, ?) > 0`).bind(PHOTO_MAP[id], `images.unsplash.com/${id}`)),
+    db.prepare(`INSERT INTO meta (k, v) VALUES ('photos_local', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v`).bind(ver)
+  ]);
 }
 
 /* Renvoie la base prête à l'emploi, ou null si elle n'est pas branchée */

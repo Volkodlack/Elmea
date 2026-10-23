@@ -1,5 +1,16 @@
 /* Validation commune pour la création / modification d'articles */
 import { clip, parisDay, readingMinutes, sanitizeHtml, slugify } from './util.js';
+import { SITE_URL } from './generated.js';
+import { SITE } from '../../src/config.mjs';
+
+/* Signale immédiatement une page nouvelle ou modifiée à Bing & co (IndexNow) */
+export function pingIndexNow(ctx, slug) {
+  const urls = [`${SITE_URL}/blog/${slug}/`, `${SITE_URL}/blog/`, `${SITE_URL}/`];
+  ctx.waitUntil(fetch('https://api.indexnow.org/indexnow', {
+    method: 'POST', headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    body: JSON.stringify({ host: new URL(SITE_URL).host, key: SITE.indexNowKey, keyLocation: `${SITE_URL}/${SITE.indexNowKey}.txt`, urlList: urls })
+  }).catch(() => {}));
+}
 
 export function validatePost(input) {
   const title = clip(input.title, 160);

@@ -1,6 +1,8 @@
 /* Rendu des pages du blog côté Cloudflare, à partir du gabarit généré au build */
-import { TEMPLATE, ICONS } from './generated.js';
-import { SITE } from '../../src/config.mjs';
+import { TEMPLATE, ICONS, SITE_URL } from './generated.js';
+import { SITE as BASE } from '../../src/config.mjs';
+
+const SITE = { ...BASE, url: SITE_URL };
 import { createBlogRenderer, esc } from '../../src/blog-render.mjs';
 
 const ic = (name, cls = 'w-5 h-5') =>

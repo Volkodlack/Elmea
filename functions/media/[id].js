@@ -9,5 +9,5 @@ export async function onRequestGet({ params, env }) {
   const bin = atob(r.data);
   const out = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
-  return new Response(out, { headers: { 'Content-Type': r.mime, 'Cache-Control': 'public, max-age=31536000, immutable' } });
+  return new Response(out, { headers: { 'Content-Type': r.mime, 'Cache-Control': 'public, max-age=31536000, immutable', 'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': "default-src 'none'" } });
 }
