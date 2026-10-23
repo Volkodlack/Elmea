@@ -160,6 +160,17 @@ function photo(key, w, alt, cls = 'w-full h-full object-cover', eager = false) {
   return `<img src="${src(w)}"${srcset} alt="${esc(alt)}" class="${cls}" ${eager ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async" data-fallback>`;
 }
 
+/* Photos de Manon (public/assets/img/manon) */
+const MANON = {
+  'rendez-vous': { widths: [480, 800, 1200], alt: 'Manon Samain, gestionnaire administrative, en rendez-vous avec une cliente' },
+  telephone: { widths: [480, 800], alt: 'Manon Samain au téléphone, devant son ordinateur' },
+  dossier: { widths: [480, 800], alt: 'Manon Samain relisant un dossier administratif' }
+};
+function manon(key, cls, sizes = '(max-width: 1024px) 100vw, 600px', eager = false) {
+  const m = MANON[key], big = m.widths[m.widths.length - 1];
+  return `<img src="/assets/img/manon/${key}-${big}.webp" srcset="${m.widths.map((w) => `/assets/img/manon/${key}-${w}.webp ${w}w`).join(', ')}" sizes="${sizes}" alt="${esc(m.alt)}" class="${cls}" ${eager ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async">`;
+}
+
 const fmtDate = (d) => new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
 const euro = (n) => n.toLocaleString('fr-FR').replace(/\u202f|\u00a0/g, '&nbsp;') + '&nbsp;€';
 const abs = (p) => SITE.url + p;
@@ -367,7 +378,7 @@ ${footer()}
 --------------------------------------------------------- */
 const personLd = () => ({
   '@context': 'https://schema.org', '@type': 'Person', name: SITE.owner, jobTitle: SITE.role,
-  worksFor: { '@id': BUSINESS_ID }, url: SITE.url + '/',
+  worksFor: { '@id': BUSINESS_ID }, url: SITE.url + '/', image: abs('/assets/img/manon/telephone-800.webp'),
   knowsAbout: ['Gestion administrative', 'Administration des ventes', 'Facturation', 'Variables de paie', 'Appels d’offres', 'Marchés publics', 'Mémoire technique BTP', ...SITE.tools],
   hasCredential: { '@type': 'EducationalOccupationalCredential', name: 'BTS Gestion de la PME' },
   sameAs: [SITE.social.linkedin].filter(Boolean)
@@ -542,7 +553,7 @@ const add = (p, html, opts = {}) => pages.push({ path: p, html, ...opts });
       </dl>
     </div>
     <div class="relative">
-      <div class="aspect-[5/4] lg:aspect-[4/5] rounded-[2rem] overflow-hidden shadow-soft img-fallback">${photo('office', 1100, 'Bureau lumineux dédié à la gestion administrative externalisée', 'w-full h-full object-cover', true)}</div>
+      <div class="aspect-[5/4] lg:aspect-[4/5] rounded-[2rem] overflow-hidden shadow-soft img-fallback">${manon('rendez-vous', 'w-full h-full object-cover object-[48%_30%]', '(max-width: 1024px) 100vw, 600px', true)}</div>
       <div class="absolute -bottom-6 left-4 sm:left-6 bg-white rounded-2xl shadow-soft p-5 flex items-center gap-4 max-w-xs">
         <span class="w-12 h-12 rounded-full bg-terra-soft flex items-center justify-center text-terra shrink-0">${ic('shield-check', 'w-6 h-6')}</span>
         <p class="text-sm"><strong class="text-forest">Confidentialité garantie</strong><br><span class="text-ink/60">Vos données restent les vôtres.</span></p>
@@ -623,9 +634,12 @@ const add = (p, html, opts = {}) => pages.push({ path: p, html, ...opts });
 ${valuesBand()}
 
 <section class="py-20" aria-labelledby="about-title">
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-[280px,1fr] gap-10 items-center">
-    <div class="reveal mx-auto">
-      <div class="w-64 h-64 rounded-full bg-white shadow-soft flex items-center justify-center p-8"><img src="/assets/img/logo-elmea-560.png" alt="Logo Élméa Solutions" width="560" height="504" class="w-full h-auto" loading="lazy"></div>
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-[340px,1fr] gap-10 lg:gap-14 items-center">
+    <div class="reveal mx-auto w-full flex justify-center">
+      <div class="relative w-full max-w-[340px]">
+        <div class="aspect-[4/5] rounded-[2rem] overflow-hidden shadow-soft img-fallback">${manon('telephone', 'w-full h-full object-cover object-[55%_20%]', '(max-width: 768px) 90vw, 340px')}</div>
+        <span class="absolute -bottom-5 -right-3 w-20 h-20 rounded-full bg-white shadow-soft p-2"><img src="/assets/img/logo-mark.png" alt="" width="80" height="80" class="w-full h-full" loading="lazy"></span>
+      </div>
     </div>
     <div class="reveal">
       <p class="eyebrow">Qui suis-je ?</p>
@@ -697,7 +711,7 @@ ${ctaBlock()}`;
     title: 'Gestion administrative externalisée, ADV & appels d’offres BTP | Élméa Solutions – Monteux',
     description: 'Secrétariat indépendant et gestion administrative externalisée pour PME et BTP : ADV, facturation, relances, variables de paie, mémoire technique et appels d’offres. Monteux, Carpentras, Avignon.',
     body, ld: [businessLd(), faqLd(FAQ), personLd(), { '@context': 'https://schema.org', '@type': 'WebSite', name: SITE.name, url: SITE.url + '/', inLanguage: 'fr-FR', publisher: { '@id': BUSINESS_ID } }],
-    extraHead: LOCAL.office ? `\n  <link rel="preload" as="image" href="${PHOTOS.office(1200)}" imagesrcset="${PHOTOS.office(800)} 800w, ${PHOTOS.office(1200)} 1200w" imagesizes="(max-width: 768px) 100vw, 1200px" fetchpriority="high">` : ''
+    extraHead: `\n  <link rel="preload" as="image" href="/assets/img/manon/rendez-vous-1200.webp" imagesrcset="/assets/img/manon/rendez-vous-480.webp 480w, /assets/img/manon/rendez-vous-800.webp 800w, /assets/img/manon/rendez-vous-1200.webp 1200w" imagesizes="(max-width: 1024px) 100vw, 600px" fetchpriority="high">`
   }));
 }
 
@@ -783,15 +797,17 @@ ${ctaBlock('Libérez-vous de la paperasse', 'Décrivez-moi votre organisation : 
   ];
   const body = `
 <section class="relative bg-forest text-cream overflow-hidden">
-  <div class="absolute inset-0 opacity-20 img-fallback" aria-hidden="true">${photo('worker', 1600, '', 'w-full h-full object-cover', true)}</div>
   <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-20 lg:pb-28">
     <nav aria-label="Fil d’Ariane" class="text-sm text-cream/70"><a href="/" class="hover:text-white">Accueil</a> <span aria-hidden="true">›</span> <span aria-current="page" class="text-white">Appels d’offres BTP</span></nav>
-    <div class="max-w-3xl mt-12">
+    <div class="mt-12 grid lg:grid-cols-[1fr,380px] gap-12 items-center">
+    <div class="max-w-3xl">
       <p class="text-terra-light text-xs tracking-[.25em] uppercase font-semibold">Spécialisé BTP &amp; PME</p>
       <h1 class="font-serif text-5xl sm:text-6xl font-semibold mt-3 leading-tight">Appels d’offres &amp; mémoire technique BTP</h1>
       <div class="divider my-6"></div>
       <p class="text-lg text-cream/85 leading-relaxed">Répondre aux marchés publics et privés prend un temps considérable. Je monte vos dossiers de candidature et rédige votre <strong class="text-white">mémoire technique</strong> pour multiplier vos chances de remporter des marchés.</p>
       <a href="${contactUrl('Appels d’offres / mémoire technique')}" class="mt-8 btn-primary">J’ai un appel d’offres en cours ${ic('arrow-right')}</a>
+    </div>
+    <div class="hidden lg:block aspect-[4/5] rounded-[2rem] overflow-hidden shadow-2xl img-fallback">${manon('dossier', 'w-full h-full object-cover object-[50%_25%]', '380px', true)}</div>
     </div>
   </div>
 </section>
@@ -839,6 +855,7 @@ ${ctaBlock('Un appel d’offres en vue ?', 'Envoyez-moi le lien de la consultati
     <div class="lg:col-span-2">
       <p class="eyebrow">Contact &amp; devis</p>
       <h1 class="font-serif text-5xl text-forest font-semibold mt-3 leading-tight">Discutons de vos besoins</h1>
+      <div class="mt-5 flex items-center gap-3"><img src="/assets/img/manon/avatar-240.webp" alt="Manon Samain" width="56" height="56" class="w-14 h-14 rounded-full object-cover shadow-soft"><p class="text-sm text-ink/70 leading-snug"><strong class="text-forest">Manon Samain</strong><br>Je réponds personnellement à chaque demande.</p></div>
       <p class="font-script text-terra text-4xl mt-2">premier échange offert</p>
       <div class="divider my-6"></div>
       <p class="text-ink/75 leading-relaxed">Décrivez-moi votre activité et ce que vous souhaitez déléguer : je vous réponds sous 24 h ouvrées avec une proposition adaptée.</p>
