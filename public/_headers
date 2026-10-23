@@ -16,3 +16,10 @@
 
 /assets/js/*
   Cache-Control: public, max-age=2592000
+
+/admin/*
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-store
+
+/assets/js/admin.js
+  Cache-Control: no-cache

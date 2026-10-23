@@ -34,23 +34,63 @@
     reveals.forEach(function (el) { el.classList.add('in'); });
   }
 
-  /* ---------- Carrousel Instagram ---------- */
-  var track = $('#igTrack');
-  if (track) {
-    var step = function () { return track.clientWidth * 0.8; };
-    var prev = $('.ig-prev'), next = $('.ig-next');
-    if (next) next.addEventListener('click', function () { track.scrollBy({ left: step(), behavior: 'smooth' }); });
-    if (prev) prev.addEventListener('click', function () { track.scrollBy({ left: -step(), behavior: 'smooth' }); });
-    var paused = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    track.addEventListener('mouseenter', function () { paused = true; });
-    track.addEventListener('mouseleave', function () { paused = false; });
-    track.addEventListener('touchstart', function () { paused = true; }, { passive: true });
-    track.addEventListener('focusin', function () { paused = true; });
-    setInterval(function () {
-      if (paused || document.hidden) return;
-      var end = track.scrollLeft + track.clientWidth >= track.scrollWidth - 5;
-      track.scrollTo({ left: end ? 0 : track.scrollLeft + step(), behavior: 'smooth' });
-    }, 5000);
+  /* ---------- Mesure d'audience (interne, sans cookie) ---------- */
+  var send = function () {};
+  (function () {
+    var off = false;
+    try { off = localStorage.getItem('elmea_notrack') === '1'; } catch (e) {}
+    if (off || location.pathname.indexOf('/admin') === 0 || location.protocol === 'file:') return;
+    send = function (o) {
+      var body = JSON.stringify(o);
+      try {
+        if (navigator.sendBeacon && navigator.sendBeacon('/api/track', body)) return;
+        fetch('/api/track', { method: 'POST', body: body, keepalive: true }).catch(function () {});
+      } catch (e) {}
+    };
+    var q = new URLSearchParams(location.search);
+    send({ t: 'pv', p: location.pathname, r: document.referrer, w: window.innerWidth, s: q.get('utm_source') || '' });
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest && e.target.closest('a[href]');
+      if (!a) return;
+      var h = a.getAttribute('href') || '';
+      var n = h.indexOf('https://wa.me') === 0 ? 'whatsapp'
+        : h.indexOf('tel:') === 0 ? 'telephone'
+        : h.indexOf('mailto:') === 0 ? 'email'
+        : /facebook\.com/.test(h) ? 'facebook'
+        : /instagram\.com/.test(h) ? 'instagram' : '';
+      if (n) send({ t: 'ev', n: n, p: location.pathname });
+    });
+  })();
+
+  /* ---------- Fil Facebook (chargé uniquement avec l'accord du visiteur) ---------- */
+  var fb = $('#fbFeed');
+  if (fb) {
+    var loadFb = function () {
+      if (fb.getAttribute('data-loaded')) return;
+      fb.setAttribute('data-loaded', '1');
+      var w = Math.max(280, Math.min(500, Math.floor(fb.clientWidth)));
+      var src = 'https://www.facebook.com/plugins/page.php?href=' + encodeURIComponent(fb.getAttribute('data-href')) +
+        '&tabs=timeline&width=' + w + '&height=640&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=false&locale=fr_FR';
+      fb.innerHTML = '';
+      var f = document.createElement('iframe');
+      f.src = src; f.width = w; f.height = 640; f.title = 'Publications Facebook d’Élméa Solutions';
+      f.style.border = 'none'; f.style.overflow = 'hidden'; f.style.display = 'block'; f.style.margin = '0 auto';
+      f.setAttribute('scrolling', 'no'); f.setAttribute('allow', 'encrypted-media; clipboard-write; web-share'); f.loading = 'lazy';
+      fb.appendChild(f);
+    };
+    var btnFb = $('#fbLoad');
+    if (btnFb) btnFb.addEventListener('click', function () {
+      try { localStorage.setItem('elmea_fb', '1'); } catch (e) {}
+      loadFb();
+    });
+    var ok = false;
+    try { ok = localStorage.getItem('elmea_fb') === '1'; } catch (e) {}
+    if (ok) {
+      if ('IntersectionObserver' in window) {
+        var fio = new IntersectionObserver(function (en) { if (en[0].isIntersecting) { fio.disconnect(); loadFb(); } }, { rootMargin: '300px' });
+        fio.observe(fb);
+      } else loadFb();
+    }
   }
 
   /* ---------- Filtres du blog ---------- */
@@ -119,6 +159,7 @@
         return;
       }
 
+      send({ t: 'ev', n: 'formulaire', p: location.pathname });
       var endpoint = form.getAttribute('data-endpoint');
       var email = form.getAttribute('data-email');
       var data = {};

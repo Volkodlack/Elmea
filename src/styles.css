@@ -56,8 +56,14 @@
   .prose-elmea ol { @apply list-decimal pl-6 space-y-2; }
   .prose-elmea strong { @apply text-forest; }
   .prose-elmea a { @apply text-terra underline underline-offset-4; }
+  .prose-elmea img { @apply rounded-2xl my-6 w-full h-auto; }
   .prose-elmea blockquote { @apply border-l-4 border-terra bg-terra-soft/50 rounded-r-xl px-5 py-4 text-forest; }
 }
+
+/* Éditeur d'articles (admin) */
+.editor { position: relative; }
+.editor[data-empty="true"]::before { content: attr(data-placeholder); position: absolute; top: 0; left: 0; right: 0; color: rgba(46,51,48,.38); pointer-events: none; }
+.editor a { color: #B5634B; text-decoration: underline; }
 
 /* Animations */
 .reveal { opacity: 0; transform: translateY(18px); transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); }

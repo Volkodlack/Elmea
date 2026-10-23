@@ -1,65 +1,14 @@
 /* ==========================================================
    Élméa Solutions – générateur du site statique
-   Usage : npm run build   (génère le dossier dist/)
-   Toutes les infos modifiables sont dans SITE et PHOTOS ci-dessous.
+   Usage : npm run build   (génère dist/ + functions/_lib/generated.js)
+   Coordonnées, réseaux, formulaire, mentions légales : src/config.mjs
    ========================================================== */
 import fs from 'node:fs';
 import path from 'node:path';
 import { icons } from 'lucide';
 import { ARTICLES } from './src/articles.mjs';
-
-/* ---------------------------------------------------------
-   1. CONFIGURATION – à adapter avant la mise en ligne
---------------------------------------------------------- */
-const SITE = {
-  name: 'Élméa Solutions',
-  url: 'https://www.elmea-solutions.fr',          // domaine définitif, sans / final
-  owner: 'Manon Samain',
-  role: 'Gestionnaire administrative externalisée',
-  phone: '06 32 24 63 11',
-  phoneIntl: '+33632246311',
-  whatsapp: '33632246311',
-  email: 'elmea.solutions@outlook.fr',
-  city: 'Monteux',
-  postalCode: '84170',
-  region: 'Provence-Alpes-Côte d’Azur',
-  geo: { lat: 44.0361, lng: 4.9967 },
-  areas: ['Monteux', 'Carpentras', 'Avignon', 'Pernes-les-Fontaines', 'Sorgues', 'L’Isle-sur-la-Sorgue'],
-  hours: 'Du lundi au vendredi, 8 h 30 – 18 h',
-  social: {
-    instagram: 'https://www.instagram.com/elmea.solutions',   // à vérifier
-    instagramHandle: '@elmea.solutions',
-    linkedin: '',   // laisser vide = icône masquée
-    facebook: ''
-  },
-  /* Formulaire : sans endpoint, le formulaire ouvre la messagerie (mailto).
-     Web3Forms (gratuit) : endpoint 'https://api.web3forms.com/submit' + accessKey.
-     Formspree : endpoint 'https://formspree.io/f/xxxxxxx', accessKey ''. */
-  form: { endpoint: '', accessKey: '' },
-  legal: {
-    status: 'Entrepreneur individuel (micro-entreprise)',
-    siret: '[SIRET À COMPLÉTER]',
-    address: '[Adresse professionnelle à compléter], 84170 Monteux',
-    vat: 'TVA non applicable, art. 293 B du CGI [à confirmer selon le régime]',
-    host: '[Nom de l’hébergeur – adresse – téléphone]',
-    publisher: 'Manon Samain'
-  },
-  buildDate: new Date().toISOString().slice(0, 10)
-};
-
-/* Photos : remplacer par des fichiers locaux (ex. '/assets/img/photos/bureau.jpg')
-   dès que la cliente fournit ses propres visuels. */
-const U = (id) => (w) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=70`;
-const PHOTOS = {
-  office:   U('photo-1497366216548-37526070297c'),
-  calc:     U('photo-1554224155-6726b3ff858f'),
-  docs:     U('photo-1586281380349-632531db7ed4'),
-  btp:      U('photo-1541888946425-d81bb19240f5'),
-  worker:   U('photo-1504307651254-35680f356dfd'),
-  sign:     U('photo-1450101499163-c8848c66ca85'),
-  desk:     U('photo-1484480974693-6ca0a78fb36b'),
-  notebook: U('photo-1517842645767-c639042777db')
-};
+import { SITE, PHOTOS, PHOTO_LABELS } from './src/config.mjs';
+import { createBlogRenderer } from './src/blog-render.mjs';
 
 const FORFAITS = [
   { id: 'essentiel', name: 'Essentiel', price: 490, icon: 'leaf', tagline: 'Le suivi de vos factures, sans avoir à y penser.',
@@ -85,16 +34,6 @@ const FAQ = [
     a: 'Je monte le dossier administratif et rédige le mémoire technique à partir de vos informations. Une collaboration étroite est nécessaire : vous apportez votre expertise chantier, je m’occupe de l’administratif, et rien n’est envoyé sans votre accord préalable.' }
 ];
 
-const IG_POSTS = [
-  { photo: 'desk',     caption: 'Ma to-do du lundi : prioriser, déléguer, respirer 🌿', likes: 48 },
-  { photo: 'calc',     caption: 'Relances clients : 4 étapes pour être payé plus vite 💶', likes: 62 },
-  { photo: 'btp',      caption: 'Mémoire technique BTP : vos chantiers méritent d’être bien racontés 🏗️', likes: 71 },
-  { photo: 'docs',     caption: 'Un classement clair, c’est du temps gagné chaque jour 📁', likes: 39 },
-  { photo: 'office',   caption: 'Sur site ou à distance, je m’adapte à votre organisation ✨', likes: 55 },
-  { photo: 'sign',     caption: 'Variables de paie : le récap mensuel qui change tout 📋', likes: 44 },
-  { photo: 'notebook', caption: 'Facture électronique : on fait le point ensemble ? 🧾', likes: 58 }
-];
-
 const NAV = [
   { href: '/', label: 'Accueil' },
   { href: '/adv/', label: 'ADV' },
@@ -110,11 +49,13 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 const pascal = (n) => n.split('-').map((p) => p[0].toUpperCase() + p.slice(1)).join('');
 const attrs = (o) => Object.entries(o).map(([k, v]) => `${k}="${v}"`).join(' ');
 
+const USED_ICONS = {};
 function ic(name, cls = 'w-5 h-5') {
   const node = icons[pascal(name)];
   if (!node) throw new Error('Icône inconnue : ' + name);
   const children = Array.isArray(node[0]) ? node : node[2];
   const inner = children.map(([tag, a]) => `<${tag} ${attrs(a)}/>`).join('');
+  USED_ICONS[name] = inner;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${cls}" aria-hidden="true">${inner}</svg>`;
 }
 
@@ -128,7 +69,10 @@ function photo(key, w, alt, cls = 'w-full h-full object-cover', eager = false) {
 const fmtDate = (d) => new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
 const euro = (n) => n.toLocaleString('fr-FR').replace(/\u202f|\u00a0/g, '&nbsp;') + '&nbsp;€';
 const abs = (p) => SITE.url + p;
-const contactUrl = (service) => '/contact/' + (service ? '?service=' + encodeURIComponent(service) : '');
+const BLOG = createBlogRenderer({ ic, SITE });
+const { breadcrumb, breadcrumbLd, ctaBlock, contactUrl } = BLOG;
+const toPost = (a) => ({ ...a, image: PHOTOS[a.photo](1200) });
+const POSTS = [...ARTICLES].map(toPost).sort((a, b) => b.date.localeCompare(a.date));
 const jsonld = (o) => `<script type="application/ld+json">${JSON.stringify(o).replace(/</g, '\\u003c')}</script>`;
 
 /* ---------------------------------------------------------
@@ -162,19 +106,6 @@ const businessLd = () => ({
   },
   sameAs: [SITE.social.instagram, SITE.social.linkedin, SITE.social.facebook].filter(Boolean)
 });
-
-const breadcrumbLd = (items) => ({
-  '@context': 'https://schema.org', '@type': 'BreadcrumbList',
-  itemListElement: items.map(([name, p], i) => ({ '@type': 'ListItem', position: i + 1, name, item: abs(p) }))
-});
-
-function breadcrumb(items) {
-  return `<nav aria-label="Fil d’Ariane" class="text-sm text-ink/60">
-    <ol class="flex flex-wrap items-center gap-1.5">${items.map(([name, p], i) =>
-      i < items.length - 1
-        ? `<li><a href="${p}" class="hover:text-terra">${esc(name)}</a></li><li aria-hidden="true">${ic('chevron-right', 'w-3.5 h-3.5')}</li>`
-        : `<li aria-current="page" class="text-forest font-medium">${esc(name)}</li>`).join('')}</ol></nav>`;
-}
 
 function header(current) {
   const isActive = (href) => href === '/' ? current === '/' : current.startsWith(href);
@@ -265,7 +196,7 @@ function footer() {
 <button id="toTop" type="button" class="fixed bottom-5 left-5 z-40 w-11 h-11 rounded-full bg-white text-forest shadow-soft hidden items-center justify-center hover:text-terra" aria-label="Retour en haut">${ic('arrow-up')}</button>`;
 }
 
-function layout({ path: p, title, description, body, ld = [], ogType = 'website', ogImage = '/assets/img/og-image.jpg', noindex = false, extraHead = '' }) {
+function layout({ path: p, navPath, title, description, body, ld = [], ogType = 'website', ogImage = '/assets/img/og-image.jpg', noindex = false, extraHead = '' }) {
   return `<!DOCTYPE html>
 <html lang="fr" class="no-js">
 <head>
@@ -285,7 +216,7 @@ function layout({ path: p, title, description, body, ld = [], ogType = 'website'
   <meta property="og:title" content="${esc(title)}">
   <meta property="og:description" content="${esc(description)}">
   <meta property="og:url" content="${abs(p)}">
-  <meta property="og:image" content="${ogImage.startsWith('http') ? ogImage : abs(ogImage)}">
+  <meta property="og:image" content="${/^(https?:|%%)/.test(ogImage) ? ogImage : abs(ogImage)}">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/icon-32.png">
@@ -298,7 +229,7 @@ function layout({ path: p, title, description, body, ld = [], ogType = 'website'
   ${ld.map(jsonld).join('\n  ')}${extraHead}
 </head>
 <body>
-${header(p)}
+${header(navPath || p)}
 <main id="contenu">
 ${body}
 </main>
@@ -312,27 +243,47 @@ ${footer()}
 /* ---------------------------------------------------------
    4. BLOCS RÉUTILISABLES
 --------------------------------------------------------- */
+const socialSection = () => {
+  const fb = SITE.social.facebook;
+  const right = fb ? `
+      <div id="fbFeed" data-href="${esc(fb)}" class="mx-auto w-full max-w-[500px] rounded-3xl overflow-hidden bg-white shadow-soft min-h-[300px] flex items-center justify-center">
+        <div class="fb-placeholder p-8 sm:p-10 text-center">
+          <span class="w-16 h-16 mx-auto rounded-full bg-terra-soft text-terra flex items-center justify-center">${ic('facebook', 'w-8 h-8')}</span>
+          <p class="font-serif text-2xl text-forest font-semibold mt-5">Les dernières publications</p>
+          <p class="text-sm text-ink/65 mt-3 leading-relaxed max-w-sm mx-auto">Ce fil d’actualité est fourni par Facebook. En l’affichant, vous acceptez que Facebook dépose des cookies sur votre navigateur.</p>
+          <button type="button" id="fbLoad" class="btn-primary mt-6">Afficher les publications</button>
+          <p class="mt-4 text-xs text-ink/55"><a href="/confidentialite/" class="underline underline-offset-2 hover:text-terra">En savoir plus sur vos données</a></p>
+        </div>
+      </div>` : `
+      <div class="mx-auto w-full max-w-[460px] rounded-3xl bg-white shadow-soft p-10 text-center">
+        <img src="/assets/img/logo-mark.png" alt="" width="96" height="96" class="w-24 h-24 mx-auto" loading="lazy">
+        <p class="font-serif text-2xl text-forest font-semibold mt-5">${SITE.social.instagramHandle}</p>
+        <p class="text-sm text-ink/65 mt-2">Conseils, coulisses et actualités administratives.</p>
+        <a href="${SITE.social.instagram}" target="_blank" rel="noopener" class="btn-primary mt-6">${ic('instagram', 'w-5 h-5')} Voir le compte</a>
+      </div>`;
+  return `
+<section class="bg-white/60 py-20" aria-labelledby="social-title">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center">
+    <div class="reveal">
+      <p class="eyebrow">Réseaux sociaux</p>
+      <h2 id="social-title" class="h-section mt-3">Suivez l’actualité d’Élméa</h2>
+      <p class="mt-5 text-ink/75 leading-relaxed">Conseils pratiques, astuces d’organisation, nouveautés réglementaires et coulisses du métier : retrouvez-moi sur les réseaux sociaux.</p>
+      <div class="mt-8 flex flex-col sm:flex-row gap-3">
+        ${fb ? `<a href="${esc(fb)}" target="_blank" rel="noopener" class="btn-primary">${ic('facebook')} Suivre sur Facebook</a>` : ''}
+        <a href="${SITE.social.instagram}" target="_blank" rel="noopener" class="btn-outline">${ic('instagram')} ${SITE.social.instagramHandle}</a>
+      </div>
+    </div>
+    <div class="reveal">${right}
+    </div>
+  </div>
+</section>`;
+};
+
 const valuesBand = () => `
 <section class="bg-forest text-cream py-12" aria-label="Mes valeurs">
   <div class="max-w-6xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
     ${[['folder-check', 'Organisation'], ['target', 'Rigueur'], ['shield', 'Confidentialité'], ['clock', 'Réactivité']].map(([i, l]) =>
       `<div>${ic(i, 'w-8 h-8 mx-auto text-terra-light')}<p class="mt-3 tracking-[.2em] text-sm uppercase">${l}</p></div>`).join('\n    ')}
-  </div>
-</section>`;
-
-const ctaBlock = (title = 'Discutons de vos besoins !', text = 'Premier échange gratuit et sans engagement pour définir ensemble la formule la plus adaptée.', service = '') => `
-<section class="py-20">
-  <div class="max-w-5xl mx-auto px-4 reveal">
-    <div class="relative overflow-hidden rounded-[2rem] bg-terra text-white p-10 sm:p-14 text-center">
-      <div class="absolute -right-10 -top-10 w-48 h-48 rounded-full bg-white/10" aria-hidden="true"></div>
-      <div class="absolute -left-10 -bottom-16 w-56 h-56 rounded-full bg-white/10" aria-hidden="true"></div>
-      <p class="font-script text-5xl relative">${title}</p>
-      <p class="mt-4 text-white/90 max-w-xl mx-auto relative">${text}</p>
-      <div class="mt-8 flex flex-col sm:flex-row gap-3 justify-center relative">
-        <a href="${contactUrl(service)}" class="bg-white text-terra px-7 py-4 rounded-full font-semibold hover:bg-forest hover:text-white transition">Demander un devis gratuit</a>
-        <a href="tel:${SITE.phoneIntl}" class="border border-white/60 px-7 py-4 rounded-full font-semibold hover:bg-white/10 transition inline-flex items-center justify-center gap-2">${ic('phone')} ${SITE.phone}</a>
-      </div>
-    </div>
   </div>
 </section>`;
 
@@ -373,19 +324,7 @@ const forfaitCard = (f) => {
   </article>`;
 };
 
-const articleCard = (a, h = 'h3') => `
-<article class="group bg-white rounded-3xl overflow-hidden shadow-soft flex flex-col reveal" data-cat="${esc(a.cat)}">
-  <a href="/blog/${a.slug}/" class="block h-52 img-fallback overflow-hidden" tabindex="-1" aria-hidden="true">${photo(a.photo, 700, '', 'w-full h-full object-cover group-hover:scale-105 transition duration-500')}</a>
-  <div class="p-7 flex flex-col flex-1">
-    <div class="flex flex-wrap items-center gap-3 text-xs text-ink/60">
-      <span class="px-2.5 py-1 rounded-full bg-terra-soft text-terra font-medium">${a.cat}</span>
-      <time datetime="${a.date}">${fmtDate(a.date)}</time><span>· ${a.read} min</span>
-    </div>
-    <${h} class="font-serif text-2xl text-forest font-semibold mt-4 leading-snug"><a href="/blog/${a.slug}/" class="hover:text-terra">${a.title}</a></${h}>
-    <p class="text-[15px] text-ink/70 mt-3 leading-relaxed flex-1">${a.excerpt}</p>
-    <a href="/blog/${a.slug}/" class="mt-5 inline-flex items-center gap-2 text-terra font-medium group-hover:gap-3 transition-all">Lire l’article ${ic('arrow-right', 'w-4 h-4')}<span class="sr-only"> : ${a.title}</span></a>
-  </div>
-</article>`;
+const articleCard = (a, h) => BLOG.card(a, h);
 
 const faqBlock = (items) => `
 <div class="space-y-3">${items.map((f, i) => `
@@ -413,7 +352,7 @@ const add = (p, html, opts = {}) => pages.push({ path: p, html, ...opts });
 
 /* ===== ACCUEIL ===== */
 {
-  const latest = [...ARTICLES].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3);
+  const latest = POSTS.slice(0, 3);
   const body = `
 <section class="relative overflow-hidden">
   <div class="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-terra-soft blur-3xl opacity-70" aria-hidden="true"></div>
@@ -534,33 +473,7 @@ ${valuesBand()}
   </div>
 </section>
 
-<section class="bg-white/60 py-20" aria-labelledby="ig-title">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 reveal">
-      <div>
-        <p class="eyebrow">Instagram</p>
-        <h2 id="ig-title" class="font-serif text-4xl text-forest font-semibold mt-2">Les coulisses d’Élméa</h2>
-        <p class="text-ink/60 mt-2">Conseils, astuces d’organisation et actualités administratives.</p>
-      </div>
-      <div class="flex items-center gap-2">
-        <button type="button" class="ig-prev w-11 h-11 rounded-full border border-forest/20 text-forest hover:border-terra hover:text-terra flex items-center justify-center" aria-label="Publications précédentes">${ic('chevron-left')}</button>
-        <button type="button" class="ig-next w-11 h-11 rounded-full border border-forest/20 text-forest hover:border-terra hover:text-terra flex items-center justify-center" aria-label="Publications suivantes">${ic('chevron-right')}</button>
-        <a href="${SITE.social.instagram}" target="_blank" rel="noopener" class="ml-2 inline-flex items-center gap-2 bg-forest text-cream px-5 py-3 rounded-full text-sm hover:bg-terra transition">${ic('instagram', 'w-4 h-4')} ${SITE.social.instagramHandle}</a>
-      </div>
-    </div>
-    <div id="igTrack" class="ig-track mt-10 flex gap-4 overflow-x-auto pb-2">
-      ${IG_POSTS.map((p) => `
-      <a href="${SITE.social.instagram}" target="_blank" rel="noopener" class="group relative shrink-0 w-[72%] sm:w-[44%] md:w-[30%] lg:w-[23%] aspect-square rounded-2xl overflow-hidden img-fallback">
-        ${photo(p.photo, 500, p.caption, 'w-full h-full object-cover group-hover:scale-105 transition duration-500')}
-        <span class="absolute inset-0 bg-gradient-to-t from-forest/85 via-forest/10 to-transparent sm:opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition flex flex-col justify-end p-4 text-cream">
-          <span class="text-sm leading-snug">${p.caption}</span>
-          <span class="text-xs mt-2 flex items-center gap-1 text-cream/80">${ic('heart', 'w-3.5 h-3.5')}${p.likes}</span>
-        </span>
-        <span class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 text-terra flex items-center justify-center">${ic('instagram', 'w-4 h-4')}</span>
-      </a>`).join('')}
-    </div>
-  </div>
-</section>
+${socialSection()}
 
 <section class="py-20" aria-labelledby="blog-title">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -568,7 +481,7 @@ ${valuesBand()}
       <div><p class="eyebrow">Blog</p><h2 id="blog-title" class="font-serif text-4xl text-forest font-semibold mt-2">Derniers conseils</h2></div>
       <a href="/blog/" class="inline-flex items-center gap-2 text-terra font-medium">Tous les articles ${ic('arrow-right', 'w-4 h-4')}</a>
     </div>
-    <div class="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-7">${latest.map((a) => articleCard(a)).join('')}</div>
+    <div id="latestPosts" class="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-7">${latest.map((a) => articleCard(a)).join('')}</div>
   </div>
 </section>
 
@@ -780,68 +693,13 @@ ${ctaBlock('Un appel d’offres en vue ?', 'Envoyez-moi le lien de la consultati
     ld: [{ ...businessLd(), '@context': 'https://schema.org' }, breadcrumbLd(crumbs), { '@context': 'https://schema.org', '@type': 'ContactPage', name: 'Contact Élméa Solutions', url: abs(p) }] }));
 }
 
-/* ===== BLOG ===== */
+/* ===== BLOG (version statique : sert de repli si la base D1 n'est pas branchée) ===== */
 {
-  const p = '/blog/';
-  const crumbs = [['Accueil', '/'], ['Blog', p]];
-  const sorted = [...ARTICLES].sort((a, b) => b.date.localeCompare(a.date));
-  const cats = ['Tous', ...new Set(sorted.map((a) => a.cat))];
-  const body = `
-<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16 lg:pb-24">
-  ${breadcrumb(crumbs)}
-  <div class="text-center max-w-2xl mx-auto mt-10">
-    <p class="eyebrow">Blog &amp; actualités</p>
-    <h1 class="font-serif text-5xl text-forest font-semibold mt-3 leading-tight">Conseils pour une gestion administrative sereine</h1>
-    <p class="mt-4 text-ink/70">Astuces, réglementation et bonnes pratiques pour les dirigeants de PME, artisans et entreprises du BTP.</p>
-  </div>
-  <div class="mt-10 flex flex-wrap justify-center gap-2" id="blogFilters" role="group" aria-label="Filtrer par catégorie">
-    ${cats.map((c, i) => `<button type="button" data-filter="${esc(c)}" aria-pressed="${i === 0}" class="px-4 py-2 rounded-full text-sm border transition ${i === 0 ? 'bg-forest text-cream border-forest' : 'border-forest/15 text-forest hover:border-terra hover:text-terra'}">${c}</button>`).join('\n    ')}
-  </div>
-  <div id="blogGrid" class="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-7">${sorted.map((a) => articleCard(a, 'h2')).join('')}</div>
-</section>
-${ctaBlock('Une question sur votre situation ?', 'Chaque entreprise est différente : parlons de la vôtre lors d’un premier échange gratuit.')}`;
-  add(p, layout({ path: p, title: 'Blog : conseils en gestion administrative, ADV et appels d’offres BTP | Élméa Solutions', description: 'Conseils pratiques pour dirigeants de PME et du BTP : facturation, relances d’impayés, variables de paie, mémoire technique et dossiers d’appels d’offres.', body,
-    ld: [breadcrumbLd(crumbs), { '@context': 'https://schema.org', '@type': 'Blog', name: 'Blog Élméa Solutions', url: abs(p), publisher: { '@id': BUSINESS_ID },
-      blogPost: sorted.map((a) => ({ '@type': 'BlogPosting', headline: a.title, url: abs('/blog/' + a.slug + '/'), datePublished: a.date })) }] }));
-
-  /* Articles */
-  sorted.forEach((a) => {
-    const ap = '/blog/' + a.slug + '/';
-    const ac = [['Accueil', '/'], ['Blog', '/blog/'], [a.title, ap]];
-    const related = sorted.filter((x) => x.slug !== a.slug).sort((x, y) => (y.cat === a.cat) - (x.cat === a.cat)).slice(0, 3);
-    const img = typeof PHOTOS[a.photo] === 'function' ? PHOTOS[a.photo](1200) : PHOTOS[a.photo];
-    const abody = `
-<article itemscope itemtype="https://schema.org/BlogPosting">
-  <header class="max-w-3xl mx-auto px-4 sm:px-6 pt-8">
-    ${breadcrumb(ac)}
-    <div class="mt-10 flex flex-wrap items-center gap-3 text-sm text-ink/60">
-      <span class="px-3 py-1 rounded-full bg-terra-soft text-terra font-medium">${a.cat}</span>
-      <time datetime="${a.date}" itemprop="datePublished">${fmtDate(a.date)}</time><span>· ${a.read} min de lecture</span>
-    </div>
-    <h1 class="font-serif text-4xl sm:text-5xl text-forest font-semibold mt-4 leading-tight" itemprop="headline">${a.title}</h1>
-    <p class="mt-5 text-lg text-ink/75 leading-relaxed" itemprop="description">${a.excerpt}</p>
-    <p class="mt-6 flex items-center gap-3 text-sm"><img src="/assets/img/logo-mark.png" alt="" width="40" height="40" class="w-10 h-10 rounded-full bg-white p-1 shadow-soft"><span>Par <strong class="text-forest" itemprop="author">${SITE.owner}</strong>, ${SITE.role.toLowerCase()}</span></p>
-  </header>
-  <div class="max-w-5xl mx-auto px-4 sm:px-6 mt-10"><div class="aspect-[16/8] rounded-[2rem] overflow-hidden shadow-soft img-fallback">${photo(a.photo, 1200, a.title, 'w-full h-full object-cover', true)}</div></div>
-  <div class="max-w-3xl mx-auto px-4 sm:px-6 py-14">
-    <div class="prose-elmea" itemprop="articleBody">${a.body}</div>
-    <aside class="mt-14 rounded-3xl bg-forest text-cream p-8 sm:p-10 flex flex-col sm:flex-row gap-6 items-start sm:items-center">
-      <div class="flex-1"><p class="font-script text-terra-light text-4xl">Besoin d’un coup de main ?</p><p class="mt-2 text-cream/85">Vous gérez votre activité, je m’occupe du reste. Premier échange gratuit et sans engagement.</p></div>
-      <a href="/contact/" class="shrink-0 bg-terra text-white px-6 py-3 rounded-full font-medium hover:bg-white hover:text-forest transition inline-flex items-center gap-2">Me contacter ${ic('arrow-right', 'w-4 h-4')}</a>
-    </aside>
-    <p class="mt-8"><a href="/blog/" class="inline-flex items-center gap-2 text-terra font-medium">${ic('arrow-left', 'w-4 h-4')} Retour au blog</a></p>
-  </div>
-</article>
-<section class="bg-white/60 py-16" aria-labelledby="related-title">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <h2 id="related-title" class="font-serif text-3xl text-forest font-semibold">À lire aussi</h2>
-    <div class="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-7">${related.map((r) => articleCard(r)).join('')}</div>
-  </div>
-</section>`;
-    add(ap, layout({ path: ap, title: a.title + ' | Élméa Solutions', description: a.description, body: abody, ogType: 'article', ogImage: img,
-      extraHead: `\n  <meta property="article:published_time" content="${a.date}">\n  <meta property="article:section" content="${esc(a.cat)}">`,
-      ld: [breadcrumbLd(ac), { '@context': 'https://schema.org', '@type': 'BlogPosting', headline: a.title, description: a.description, image: img, datePublished: a.date, dateModified: a.date, inLanguage: 'fr-FR',
-        mainEntityOfPage: abs(ap), author: { '@type': 'Person', name: SITE.owner, jobTitle: SITE.role }, publisher: { '@type': 'Organization', name: SITE.name, logo: { '@type': 'ImageObject', url: abs('/assets/img/logo-elmea.png') } } }] }), { lastmod: a.date });
+  const idx = BLOG.indexPage(POSTS);
+  add(idx.path, layout(idx));
+  POSTS.forEach((a) => {
+    const pg = BLOG.articlePage(a, POSTS);
+    add(pg.path, layout({ ...pg, extraHead: pg.head }), { lastmod: a.date });
   });
 }
 
@@ -886,8 +744,11 @@ legalPage('/confidentialite/', 'Politique de confidentialité', 'Politique de co
 <p>Les données des demandes non suivies d’une collaboration sont conservées 3 ans au maximum à compter du dernier contact, puis supprimées.</p>
 <h2>Destinataires</h2>
 <p>Vos données sont destinées uniquement à ${SITE.owner}. Elles ne sont jamais vendues, louées ni cédées à des tiers. Le cas échéant, le prestataire technique d’envoi du formulaire agit en tant que sous-traitant.</p>
-<h2>Cookies et mesure d’audience</h2>
-<p>Ce site ne dépose aucun cookie publicitaire ni de mesure d’audience. Les polices de caractères sont hébergées sur le site lui-même. Certaines images d’illustration sont chargées depuis le service Unsplash, qui peut recevoir votre adresse IP lors de leur affichage.</p>
+<h2>Mesure d’audience</h2>
+<p>Ce site utilise une mesure d’audience interne, <strong>sans cookie</strong> et anonyme : pages consultées, site de provenance, type d’appareil et pays. Votre adresse IP n’est jamais enregistrée ; un identifiant technique non réversible, renouvelé chaque jour, permet seulement de compter les visites. Ces statistiques ne sont ni partagées ni croisées avec d’autres données, et sont supprimées au bout de 13 mois.</p>
+<h2>Cookies et contenus tiers</h2>
+<p>Ce site ne dépose aucun cookie publicitaire. Les polices de caractères sont hébergées sur le site lui-même. Certaines images d’illustration sont chargées depuis le service Unsplash, qui peut recevoir votre adresse IP lors de leur affichage.</p>
+<p>Le fil d’actualité Facebook de la page d’accueil n’est chargé que si vous cliquez sur « Afficher les publications ». Facebook (Meta Platforms Ireland Ltd.) peut alors déposer des cookies et collecter des données selon sa propre <a href="https://www.facebook.com/privacy/policy/" target="_blank" rel="noopener">politique de confidentialité</a>. Votre choix est mémorisé sur votre appareil ; vous pouvez le retirer en effaçant les données de ce site dans votre navigateur.</p>
 <h2>Vos droits</h2>
 <p>Conformément au RGPD et à la loi Informatique et Libertés, vous disposez d’un droit d’accès, de rectification, d’effacement, de limitation, d’opposition et de portabilité de vos données. Pour les exercer, écrivez à <a href="mailto:${SITE.email}">${SITE.email}</a>.</p>
 <p>Vous pouvez également introduire une réclamation auprès de la CNIL : <a href="https://www.cnil.fr" target="_blank" rel="noopener">www.cnil.fr</a>.</p>`);
@@ -932,10 +793,95 @@ fs.writeFileSync(path.join(OUT, 'sitemap.xml'), `<?xml version="1.0" encoding="U
 ${pages.filter((p) => p.sitemap !== false).map((p) => `  <url><loc>${abs(p.path)}</loc><lastmod>${p.lastmod || SITE.buildDate}</lastmod><priority>${p.priority || prio(p.path)}</priority></url>`).join('\n')}
 </urlset>
 `);
-fs.writeFileSync(path.join(OUT, 'robots.txt'), `User-agent: *\nAllow: /\nDisallow: /merci/\n\nSitemap: ${abs('/sitemap.xml')}\n`);
+fs.writeFileSync(path.join(OUT, 'robots.txt'), `User-agent: *\nAllow: /\nDisallow: /merci/\nDisallow: /admin/\nDisallow: /api/\n\nSitemap: ${abs('/sitemap.xml')}\n`);
 fs.writeFileSync(path.join(OUT, 'site.webmanifest'), JSON.stringify({
   name: SITE.name, short_name: 'Élméa', start_url: '/', display: 'standalone', background_color: '#FAF6F1', theme_color: '#1F3A2E', lang: 'fr',
   icons: [{ src: '/assets/img/icon-180.png', sizes: '180x180', type: 'image/png' }, { src: '/assets/img/icon-512.png', sizes: '512x512', type: 'image/png' }]
 }, null, 2));
 
-console.log(`✔ ${pages.length} pages générées dans dist/`);
+/* ---------------------------------------------------------
+   7. ESPACE ADMIN (/admin/)
+--------------------------------------------------------- */
+fs.copyFileSync('src/admin.js', path.join(OUT, 'assets/js/admin.js'));
+fs.mkdirSync(path.join(OUT, 'admin'), { recursive: true });
+fs.writeFileSync(path.join(OUT, 'admin/index.html'), `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Administration | ${SITE.name}</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#1F3A2E">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="stylesheet" href="/assets/css/style.css?v=${SITE.buildDate}">
+</head>
+<body class="min-h-screen">
+<div id="boot" class="min-h-screen flex items-center justify-center text-ink/50 text-sm">Chargement…</div>
+
+<div id="login" class="hidden min-h-screen flex items-center justify-center px-4 py-10">
+  <form id="loginForm" class="w-full max-w-sm bg-white rounded-3xl shadow-soft p-8 sm:p-10 text-center" novalidate>
+    <img src="/assets/img/logo-elmea-560.png" alt="Élméa Solutions" width="560" height="504" class="w-40 h-auto mx-auto">
+    <h1 class="font-serif text-3xl text-forest font-semibold mt-6">Espace administration</h1>
+    <p class="text-sm text-ink/60 mt-2">Statistiques du site et rédaction des articles.</p>
+    <label for="pwd" class="sr-only">Mot de passe</label>
+    <input id="pwd" type="password" autocomplete="current-password" required class="field mt-6 text-center" placeholder="Mot de passe">
+    <p id="loginErr" class="hidden text-sm text-red-600 mt-3" role="alert"></p>
+    <button type="submit" class="btn-primary w-full mt-5">${ic('lock', 'w-4 h-4')} Se connecter</button>
+    <p class="mt-6 text-xs"><a href="/" class="text-ink/50 hover:text-terra">← Retour au site</a></p>
+  </form>
+</div>
+
+<div id="app" class="hidden min-h-screen">
+  <header class="bg-forest text-cream sticky top-0 z-30 shadow-soft">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center gap-x-6 gap-y-3">
+      <a href="/admin/" class="flex items-center gap-3 mr-auto">
+        <span class="bg-cream rounded-full p-1"><img src="/assets/img/logo-mark.png" alt="" width="32" height="32" class="w-8 h-8"></span>
+        <span class="leading-tight"><span class="block font-serif text-xl tracking-[.25em]">ÉLMÉA</span><span class="block text-[10px] tracking-[.3em] text-terra-light">ADMINISTRATION</span></span>
+      </a>
+      <nav id="tabs" class="order-3 sm:order-none w-full sm:w-auto flex gap-1 bg-white/10 rounded-full p-1" aria-label="Sections">
+        <button type="button" data-tab="stats" class="flex-1 sm:flex-none px-4 py-2 rounded-full text-sm font-medium transition inline-flex items-center justify-center gap-2">${ic('chart-column', 'w-4 h-4')} Statistiques</button>
+        <button type="button" data-tab="posts" class="flex-1 sm:flex-none px-4 py-2 rounded-full text-sm font-medium transition inline-flex items-center justify-center gap-2">${ic('pen-line', 'w-4 h-4')} Articles</button>
+      </nav>
+      <div class="flex items-center gap-2 text-sm">
+        <a href="/" target="_blank" rel="noopener" class="px-3 py-2 rounded-full hover:bg-white/10 inline-flex items-center gap-1.5">${ic('external-link', 'w-4 h-4')}<span class="hidden md:inline">Voir le site</span></a>
+        <button type="button" id="logout" class="px-3 py-2 rounded-full hover:bg-white/10 inline-flex items-center gap-1.5">${ic('log-out', 'w-4 h-4')}<span class="hidden md:inline">Déconnexion</span></button>
+      </div>
+    </div>
+  </header>
+  <main id="view" class="max-w-7xl mx-auto px-4 sm:px-6 py-8"></main>
+</div>
+
+<div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 hidden px-5 py-3 rounded-full shadow-soft text-sm font-medium" role="status" aria-live="polite"></div>
+
+<script>window.ELMEA_ADMIN = ${JSON.stringify({
+  photos: Object.keys(PHOTOS).map((k) => ({ key: k, label: PHOTO_LABELS[k] || k, url: PHOTOS[k](1200), thumb: PHOTOS[k](300) })),
+  categories: [...new Set(ARTICLES.map((a) => a.cat))],
+  pages: Object.fromEntries(pages.filter((p) => !p.file).map((p) => [p.path, ((p.html.match(/<title>([^<|]+)/) || [])[1] || p.path).trim().replace(/&amp;/g, '&')])),
+  site: { name: SITE.name, url: SITE.url },
+  icons: Object.fromEntries(['plus', 'pencil', 'trash-2', 'eye', 'arrow-left', 'image', 'bold', 'italic', 'heading-2', 'heading-3', 'list', 'list-ordered', 'quote', 'link', 'pilcrow', 'upload', 'check', 'x', 'users', 'file-text', 'mouse-pointer-click', 'message-circle', 'phone', 'mail', 'send', 'globe', 'smartphone', 'monitor', 'tablet', 'refresh-cw', 'external-link', 'eye-off', 'calendar', 'facebook', 'instagram', 'save', 'remove-formatting', 'database', 'layers', 'arrow-up-right', 'arrow-down-right', 'minus', 'search', 'chart-column', 'pen-line', 'circle-alert'].map((n) => (ic(n), [n, USED_ICONS[n]])))
+}).replace(/</g, '\\u003c')};</script>
+<script src="/assets/js/admin.js?v=${SITE.buildDate}" defer></script>
+</body>
+</html>
+`);
+
+/* ---------------------------------------------------------
+   8. FICHIER POUR LES FONCTIONS CLOUDFLARE
+   Gabarit de page + icônes + articles de départ, utilisés
+   par le blog dynamique (functions/blog) et le sitemap.
+--------------------------------------------------------- */
+const TEMPLATE = layout({
+  path: '%%PATH%%', navPath: '/blog/', title: '%%TITLE%%', description: '%%DESC%%', body: '%%BODY%%',
+  ogType: '%%OGTYPE%%', ogImage: '%%OGIMAGE%%', extraHead: '%%HEAD%%', ld: []
+});
+const staticPages = pages.filter((p) => p.sitemap !== false && !p.path.startsWith('/blog/'))
+  .map((p) => ({ path: p.path, lastmod: p.lastmod || SITE.buildDate, priority: p.priority || prio(p.path) }));
+fs.mkdirSync('functions/_lib', { recursive: true });
+fs.writeFileSync('functions/_lib/generated.js', `// Fichier généré automatiquement par build.mjs – ne pas modifier à la main.
+export const TEMPLATE = ${JSON.stringify(TEMPLATE)};
+export const ICONS = ${JSON.stringify(USED_ICONS)};
+export const SEED_POSTS = ${JSON.stringify(POSTS.map(({ photo, ...p }) => ({ ...p, body: p.body.trim() })))};
+export const STATIC_PAGES = ${JSON.stringify(staticPages)};
+`);
+
+console.log(`✔ ${pages.length} pages + admin générées dans dist/`);
