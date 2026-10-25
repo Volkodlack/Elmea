@@ -13,6 +13,9 @@ import { createBlogRenderer } from './src/blog-render.mjs';
 /* ---------- Adresse officielle (variable SITE_URL dans Cloudflare) ---------- */
 SITE.url = (process.env.SITE_URL || SITE.url).trim().replace(/\/+$/, '');
 const SITE_HOST = new URL(SITE.url).host;
+/* Version des fichiers CSS/JS : change à chaque déploiement pour que les navigateurs
+   ne gardent jamais une ancienne mise en page en cache */
+const ASSET_V = (process.env.CF_PAGES_COMMIT_SHA || '').slice(0, 10) || Date.now().toString(36);
 
 /* ---------- Photos : téléchargées une fois en WebP puis servies localement ---------- */
 const PHOTO_DIR = 'public/assets/img/photos';
@@ -358,7 +361,7 @@ function layout({ path: p, navPath, title, description, body, ld = [], ogType = 
   <link rel="manifest" href="/site.webmanifest">
   <link rel="preload" href="/assets/fonts/cormorant-garamond-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/assets/fonts/plus-jakarta-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-${ANY_REMOTE ? '  <link rel="preconnect" href="https://images.unsplash.com">\n' : ''}${SITE.verification.google ? `  <meta name="google-site-verification" content="${esc(SITE.verification.google)}">\n` : ''}${SITE.verification.bing ? `  <meta name="msvalidate.01" content="${esc(SITE.verification.bing)}">\n` : ''}  <link rel="stylesheet" href="/assets/css/style.css?v=${SITE.buildDate}">
+${ANY_REMOTE ? '  <link rel="preconnect" href="https://images.unsplash.com">\n' : ''}${SITE.verification.google ? `  <meta name="google-site-verification" content="${esc(SITE.verification.google)}">\n` : ''}${SITE.verification.bing ? `  <meta name="msvalidate.01" content="${esc(SITE.verification.bing)}">\n` : ''}  <link rel="stylesheet" href="/assets/css/style.css?v=${ASSET_V}">
   ${ld.map(jsonld).join('\n  ')}${extraHead}
 </head>
 <body>
@@ -367,7 +370,7 @@ ${header(navPath || p)}
 ${body}
 </main>
 ${footer()}
-<script src="/assets/js/main.js?v=${SITE.buildDate}" defer></script>
+<script src="/assets/js/main.js?v=${ASSET_V}" defer></script>
 </body>
 </html>
 `;
@@ -638,7 +641,7 @@ ${valuesBand()}
     <div class="reveal mx-auto w-full flex justify-center">
       <div class="relative w-full max-w-[340px]">
         <div class="aspect-[4/5] rounded-[2rem] overflow-hidden shadow-soft img-fallback">${manon('telephone', 'w-full h-full object-cover object-[55%_20%]', '(max-width: 768px) 90vw, 340px')}</div>
-        <span class="absolute -bottom-5 -right-3 w-20 h-20 rounded-full bg-white shadow-soft p-2"><img src="/assets/img/logo-mark.png" alt="" width="80" height="80" class="w-full h-full" loading="lazy"></span>
+        <span class="hidden md:block absolute -bottom-5 -right-3 w-20 h-20 rounded-full bg-white shadow-soft p-2"><img src="/assets/img/logo-mark.png" alt="" width="80" height="80" class="w-full h-full" loading="lazy"></span>
       </div>
     </div>
     <div class="reveal">
@@ -1199,7 +1202,7 @@ fs.writeFileSync(path.join(OUT, 'admin/index.html'), `<!DOCTYPE html>
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#1F3A2E">
   <link rel="icon" href="/favicon.ico" sizes="any">
-  <link rel="stylesheet" href="/assets/css/style.css?v=${SITE.buildDate}">
+  <link rel="stylesheet" href="/assets/css/style.css?v=${ASSET_V}">
 </head>
 <body class="min-h-screen">
 <div id="boot" class="min-h-screen flex items-center justify-center text-ink/50 text-sm">Chargement…</div>
@@ -1246,7 +1249,7 @@ fs.writeFileSync(path.join(OUT, 'admin/index.html'), `<!DOCTYPE html>
   site: { name: SITE.name, url: SITE.url },
   icons: Object.fromEntries(['plus', 'pencil', 'trash-2', 'eye', 'arrow-left', 'image', 'bold', 'italic', 'heading-2', 'heading-3', 'list', 'list-ordered', 'quote', 'link', 'pilcrow', 'upload', 'check', 'x', 'users', 'file-text', 'mouse-pointer-click', 'message-circle', 'phone', 'mail', 'send', 'globe', 'smartphone', 'monitor', 'tablet', 'refresh-cw', 'external-link', 'eye-off', 'calendar', 'facebook', 'instagram', 'save', 'remove-formatting', 'database', 'layers', 'arrow-up-right', 'arrow-down-right', 'minus', 'search', 'chart-column', 'pen-line', 'circle-alert'].map((n) => (ic(n), [n, USED_ICONS[n]])))
 }).replace(/</g, '\\u003c')}</script>
-<script src="/assets/js/admin.js?v=${SITE.buildDate}" defer></script>
+<script src="/assets/js/admin.js?v=${ASSET_V}" defer></script>
 </body>
 </html>
 `);
