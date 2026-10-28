@@ -70,12 +70,12 @@ const MISSIONS = [
 const CITIES = [
   {
     slug: 'monteux', name: 'Monteux', prep: 'à', path: '/secretariat-independant-monteux/', photo: 'office',
-    title: 'Secrétariat indépendant à Monteux (84) – gestion administrative & ADV | Élméa Solutions',
-    description: 'Assistante administrative indépendante basée à Monteux : facturation, relances, variables de paie, appels d’offres BTP. Intervention sur site dans les Sorgues du Comtat ou à distance.',
-    h1: 'Secrétariat indépendant à Monteux',
+    title: 'Secrétaire indépendante à Monteux (84) – gestion administrative pour TPE et PME | Élméa Solutions',
+    description: 'Secrétaire indépendante basée à Monteux : prestataire pour TPE, PME et artisans du BTP. Facturation, relances, variables de paie, appels d’offres. Zéro charge sociale, sans engagement.',
+    h1: 'Secrétaire indépendante à Monteux',
     lead: 'Élméa Solutions est installée à <strong class="text-forest">Monteux</strong>. Je prends en charge l’administratif des TPE, PME et artisans de la commune et des environs, directement dans vos locaux ou à distance.',
     local: [
-      ['Une assistante à deux pas', 'Basée à Monteux, je me déplace facilement dans les communes voisines des Sorgues du Comtat : Pernes-les-Fontaines, Sorgues, Althen-des-Paluds, Bédarrides… Une présence physique quand c’est utile, un suivi à distance le reste du temps.'],
+      ['Une assistante à deux pas', 'Basée à Monteux, je me déplace dans les zones d’activités de la commune (Beauchamp, les Escampades…) et dans les communes voisines des Sorgues du Comtat : Pernes-les-Fontaines, Sorgues, Althen-des-Paluds, Bédarrides… Une présence physique quand c’est utile, un suivi à distance le reste du temps.'],
       ['Spécialisée BTP et PME', 'J’accompagne notamment les entreprises du bâtiment : facturation des situations de travaux, suivi des paniers repas et des déplacements des équipes, dossiers d’appels d’offres. Je connais vos contraintes de chantier.'],
       ['Un fonctionnement souple', 'Par exemple une demi-journée par semaine sur site, quelques heures à distance, ou un renfort ponctuel en période chargée : la formule s’adapte à votre rythme.']
     ],
@@ -86,12 +86,12 @@ const CITIES = [
   },
   {
     slug: 'carpentras', name: 'Carpentras', prep: 'à', path: '/secretariat-independant-carpentras/', photo: 'docs',
-    title: 'Secrétariat indépendant à Carpentras – assistante administrative externalisée | Élméa Solutions',
-    description: 'Gestion administrative externalisée pour les entreprises de Carpentras et du Comtat Venaissin : ADV, facturation, relances, suivi RH, appels d’offres. Sur site ou à distance.',
-    h1: 'Secrétariat indépendant à Carpentras',
+    title: 'Externalisation administrative à Carpentras – secrétaire indépendante | Élméa Solutions',
+    description: 'Externalisation administrative pour les TPE, PME et artisans de Carpentras : facturation, relances, suivi RH, appels d’offres. Prestataire indépendante, sans embauche ni charges sociales.',
+    h1: 'Externalisation administrative à Carpentras',
     lead: 'Vous dirigez une entreprise à <strong class="text-forest">Carpentras</strong> ou dans le Comtat Venaissin ? Je vous libère de la facturation, des relances, du suivi RH et des dossiers d’appels d’offres, en intervenant dans vos locaux ou à distance.',
     local: [
-      ['Tout près de chez vous', 'Basée à Monteux, commune voisine de Carpentras, je peux venir régulièrement dans vos locaux pour faire le point, récupérer les documents et organiser le classement.'],
+      ['Tout près de chez vous', 'Basée à Monteux, commune voisine de Carpentras, je viens régulièrement dans vos locaux, en centre-ville comme dans les zones d’activités (Bellecour, Terradou, Marché Gare…), pour faire le point, récupérer les documents et organiser le classement.'],
       ['Commerces, artisans, PME', 'Du commerce de centre-ville à l’entreprise du bâtiment, les besoins varient : devis et factures, relances clients, suivi des échéances, gestion des mails. Vous ne déléguez que ce qui vous fait perdre du temps.'],
       ['Marchés publics du territoire', 'Les collectivités du Comtat Venaissin publient régulièrement des consultations. Je monte vos dossiers de candidature et rédige votre mémoire technique, toujours avec votre validation avant envoi.']
     ],
@@ -102,12 +102,12 @@ const CITIES = [
   },
   {
     slug: 'avignon', name: 'Avignon', prep: 'à', path: '/secretariat-independant-avignon/', photo: 'sign',
-    title: 'Secrétariat indépendant à Avignon – gestion administrative, ADV, appels d’offres | Élméa Solutions',
-    description: 'Assistante administrative indépendante pour les PME et entreprises du BTP d’Avignon et du Grand Avignon : facturation, relances, variables de paie, mémoire technique et appels d’offres.',
-    h1: 'Secrétariat indépendant à Avignon',
+    title: 'Secrétaire indépendante à Avignon – gestion administrative TPE et PME | Élméa Solutions',
+    description: 'Secrétaire indépendante pour les TPE, PME et entreprises du BTP d’Avignon : gestion administrative, facturation, relances, appels d’offres. Prestataire B2B, facturation à la mission ou au forfait.',
+    h1: 'Secrétaire indépendante à Avignon',
     lead: 'Pour les PME, artisans et entreprises du BTP d’<strong class="text-forest">Avignon</strong> et du Grand Avignon, je prends en charge l’administration des ventes, la gestion administrative et RH et la réponse aux appels d’offres.',
     local: [
-      ['Sur site ou à distance', 'Avignon est dans ma zone d’intervention régulière depuis Monteux. Je viens dans vos locaux quand c’est nécessaire et je gère le reste à distance.'],
+      ['Sur site ou à distance', 'Avignon est dans ma zone d’intervention régulière depuis Monteux : centre-ville, zones d’activités de Courtine et de Fontcouverte, technopôle Agroparc… Je viens dans vos locaux quand c’est nécessaire et je gère le reste à distance.'],
       ['Appels d’offres publics', 'Ville, intercommunalité, département, bailleurs sociaux : les acheteurs publics du bassin avignonnais publient de nombreux marchés de travaux. Je prépare les pièces administratives (DC1, DC2, attestations) et rédige votre mémoire technique à partir de vos informations.'],
       ['Un vrai relais administratif', 'Ancienne assistante de direction, forte de 15 ans d’expérience dans l’administratif, je m’intègre à votre organisation : vos outils, vos process, votre façon de travailler.']
     ],
@@ -118,9 +118,28 @@ const CITIES = [
   }
 ];
 
+CITIES.push({
+  slug: 'vaucluse', name: 'Vaucluse', prep: 'en', path: '/secretariat-independant-vaucluse/', photo: 'desk', region: true,
+  title: 'Secrétariat freelance en Vaucluse – assistante administrative indépendante | Élméa Solutions',
+  description: 'Secrétariat freelance en Vaucluse pour TPE, PME, artisans et entreprises du BTP : gestion administrative, ADV, appels d’offres. Prestataire indépendante, zéro charge sociale, sans engagement.',
+  h1: 'Secrétariat freelance en Vaucluse',
+  lead: 'Une <strong class="text-forest">secrétaire indépendante</strong> pour les entreprises du Vaucluse : vous déléguez votre administratif à une prestataire, sans recruter, sans contrat de travail et sans charges sociales.',
+  local: [
+    ['Une prestataire, pas un salarié', 'Vous n’embauchez personne : je facture mes prestations au forfait mensuel ou à la mission. Pas de contrat de travail, pas de cotisations sociales, pas de congés à gérer.'],
+    ['Tout le Vaucluse, sur site ou à distance', 'Depuis Monteux, j’interviens sur site à Carpentras, Avignon, Pernes-les-Fontaines, Sorgues, L’Isle-sur-la-Sorgue et alentours (jusqu’à 100 km pour les missions ponctuelles), et à distance partout ailleurs.'],
+    ['Au service des TPE et du BTP', 'Artisans, PME du bâtiment, commerçants, professions libérales : facturation, relances, suivi des salariés et appels d’offres, selon vos besoins réels.']
+  ],
+  faq: [
+    { q: 'Qu’est-ce qu’un secrétariat freelance ?', a: 'C’est une secrétaire ou assistante administrative indépendante qui travaille pour plusieurs entreprises en tant que prestataire. Vous payez une prestation sur facture, sans embauche ni charges sociales.' },
+    { q: 'Y a-t-il un engagement de durée ?', a: 'Non. Les forfaits mensuels sont sans engagement de durée et peuvent être arrêtés avec un mois de préavis. Les missions ponctuelles sont facturées à la mission.' }
+  ]
+});
+
 const FAQ = [
   { q: 'Qu’est-ce qu’une gestionnaire administrative externalisée ?',
     a: 'C’est une professionnelle indépendante qui prend en charge tout ou partie de votre administratif (facturation, relances, suivi RH, appels d’offres…) sans être salariée de votre entreprise. Vous recevez une facture mensuelle, sans charges sociales ni contrat de travail.' },
+  { q: 'Dois-je vous embaucher ?',
+    a: 'Non. Élméa Solutions est une prestataire indépendante qui travaille pour les entreprises : vous recevez une facture, sans contrat de travail, sans charges sociales et sans engagement de durée. La facturation se fait au forfait mensuel ou à la mission.' },
   { q: 'Intervenez-vous sur site ou uniquement à distance ?',
     a: 'Les deux. J’interviens sur site à Monteux, Carpentras, Avignon et alentours, et à distance partout en France grâce à des outils sécurisés de partage de documents. Les frais de déplacement sont facturés selon la distance, jusqu’à 100 km pour les missions ponctuelles.' },
   { q: 'Combien coûte l’externalisation de mon administratif ?',
@@ -207,7 +226,9 @@ const businessLd = () => ({
   areaServed: [...SITE.areas.map((a) => ({ '@type': 'City', name: a })), { '@type': 'AdministrativeArea', name: 'Vaucluse' }, { '@type': 'Country', name: 'France' }],
   priceRange: '490 € – 1 200 € HT / mois',
   openingHoursSpecification: [{ '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], opens: '08:30', closes: '18:00' }],
-  knowsAbout: ['Gestion administrative', 'Secrétariat indépendant', 'ADV', 'Facturation', 'Relances clients', 'Variables de paie', 'Mémoire technique BTP', 'Appels d’offres', 'DC1', 'DC2'],
+  slogan: 'Vous gérez votre activité, je m’occupe du reste.',
+  audience: { '@type': 'BusinessAudience', audienceType: 'TPE, PME, artisans et entreprises du BTP' },
+  knowsAbout: ['Gestion administrative', 'Secrétariat indépendant', 'Secrétariat freelance', 'Externalisation administrative', 'ADV', 'Facturation', 'Relances clients', 'Variables de paie', 'Mémoire technique BTP', 'Appels d’offres', 'DC1', 'DC2'],
   hasOfferCatalog: {
     '@type': 'OfferCatalog', name: 'Forfaits de gestion administrative',
     itemListElement: FORFAITS.map((f) => ({
@@ -276,7 +297,7 @@ function footer() {
       </ul>
       <p class="text-cream font-semibold mt-6 mb-3">Zones d’intervention</p>
       <ul class="space-y-2 text-sm">
-        ${CITIES.map((c) => `<li><a href="${c.path}" class="hover:text-terra-light">Secrétariat indépendant ${c.prep} ${c.name}</a></li>`).join('\n        ')}
+        ${CITIES.map((c) => `<li><a href="${c.path}" class="hover:text-terra-light">${c.h1}</a></li>`).join('\n        ')}
       </ul>
     </div>
     <div>
@@ -537,11 +558,11 @@ const add = (p, html, opts = {}) => pages.push({ path: p, html, ...opts });
   <div class="absolute bottom-0 -left-24 w-72 h-72 rounded-full bg-sage-light blur-3xl opacity-70" aria-hidden="true"></div>
   <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-20 lg:pt-20 lg:pb-28 grid lg:grid-cols-2 gap-12 items-center">
     <div>
-      <p class="inline-flex items-center gap-2 eyebrow mb-6">${ic('leaf', 'w-4 h-4')} Secrétariat indépendant · Vaucluse &amp; à distance</p>
+      <p class="inline-flex items-center gap-2 eyebrow mb-6">${ic('leaf', 'w-4 h-4')} Prestataire pour les professionnels · Vaucluse &amp; à distance</p>
       <h1 class="font-serif text-forest text-5xl sm:text-6xl lg:text-7xl font-semibold leading-[1.02]">
         Vous gérez<br>votre activité,
         <span class="block font-script font-normal text-terra mt-2 pl-2">je m’occupe du reste.</span>
-        <span class="sr-only"> – Gestion administrative externalisée, ADV et appels d’offres pour PME et BTP à Monteux</span>
+        <span class="sr-only"> – Secrétaire indépendante et gestion administrative externalisée pour TPE, PME et BTP en Vaucluse</span>
       </h1>
       <div class="divider my-7"></div>
       <p class="text-lg text-ink/80 max-w-xl leading-relaxed">Votre <strong class="text-forest">gestion administrative externalisée</strong>, en toute confiance : ADV, facturation, suivi RH et <strong class="text-forest">appels d’offres</strong> pour les PME et entreprises du BTP de Monteux, Carpentras, Avignon et alentours.</p>
@@ -563,6 +584,13 @@ const add = (p, html, opts = {}) => pages.push({ path: p, html, ...opts });
       </div>
     </div>
   </div>
+</section>
+
+<section class="border-y border-forest/10 bg-white" aria-label="Les avantages d’une prestataire indépendante">
+  <ul class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+    ${[['piggy-bank', 'Zéro charge sociale', 'Une facture, pas de salaire'], ['file-signature', 'Sans engagement', 'Forfaits sans durée minimum'], ['receipt-euro', 'Facturation à la mission', 'ou au forfait mensuel'], ['sliders-horizontal', 'Flexibilité totale', 'Selon votre activité']].map(([i, t, d]) =>
+      `<li class="flex items-center gap-3"><span class="w-10 h-10 rounded-full bg-terra-soft text-terra flex items-center justify-center shrink-0">${ic(i, 'w-5 h-5')}</span><span><span class="block font-semibold text-forest">${t}</span><span class="block text-ink/60 text-xs">${d}</span></span></li>`).join('\n    ')}
+  </ul>
 </section>
 
 <section class="bg-white/60 py-20" aria-labelledby="services-title">
@@ -623,7 +651,7 @@ const add = (p, html, opts = {}) => pages.push({ path: p, html, ...opts });
     </div>
     <div class="lg:col-span-3 grid sm:grid-cols-2 gap-5">
       ${[
-        ['piggy-bank', 'Zéro charge salariale', 'Pas de contrat, pas de cotisations, pas de congés à gérer : une facture mensuelle claire.'],
+        ['piggy-bank', 'Zéro charge sociale', 'Pas de contrat de travail, pas de cotisations, pas de congés à gérer : une simple facture, au forfait ou à la mission.'],
         ['sliders-horizontal', 'Flexibilité totale', 'Des forfaits modulables qui s’adaptent aux pics d’activité et à la saisonnalité.'],
         ['hourglass', 'Du temps retrouvé', 'Concentrez-vous sur vos clients, vos chantiers et le développement de votre entreprise.'],
         ['trending-up', 'Trésorerie améliorée', 'Factures envoyées à temps, relances régulières : vos délais de paiement raccourcissent.'],
@@ -711,8 +739,8 @@ ${socialSection()}
 ${ctaBlock()}`;
   add('/', layout({
     path: '/',
-    title: 'Gestion administrative externalisée, ADV & appels d’offres BTP | Élméa Solutions – Monteux',
-    description: 'Secrétariat indépendant et gestion administrative externalisée pour PME et BTP : ADV, facturation, relances, variables de paie, mémoire technique et appels d’offres. Monteux, Carpentras, Avignon.',
+    title: 'Secrétaire indépendante en Vaucluse – gestion administrative externalisée | Élméa Solutions',
+    description: 'Prestataire en gestion administrative pour TPE, PME et BTP : facturation, relances, variables de paie, appels d’offres. Zéro charge sociale, sans engagement. Monteux, Carpentras, Avignon.',
     body, ld: [businessLd(), faqLd(FAQ), personLd(), { '@context': 'https://schema.org', '@type': 'WebSite', name: SITE.name, url: SITE.url + '/', inLanguage: 'fr-FR', publisher: { '@id': BUSINESS_ID } }],
     extraHead: `\n  <link rel="preload" as="image" href="/assets/img/manon/rendez-vous-1200.webp" imagesrcset="/assets/img/manon/rendez-vous-480.webp 480w, /assets/img/manon/rendez-vous-800.webp 800w, /assets/img/manon/rendez-vous-1200.webp 1200w" imagesizes="(max-width: 1024px) 100vw, 600px" fetchpriority="high">`
   }));
@@ -936,7 +964,7 @@ CITIES.forEach((c) => {
   const crumbs = [['Accueil', '/'], [c.h1, c.path]];
   const others = CITIES.filter((x) => x.slug !== c.slug);
   const body = `
-${pageHero({ crumbs, eyebrow: 'Zone d’intervention · Vaucluse', h1: c.h1, lead: c.lead, photoKey: c.photo, alt: 'Gestion administrative externalisée – ' + c.name, cta: 'Parler de mon besoin', service: 'Autre / besoin sur mesure' })}
+${pageHero({ crumbs, eyebrow: 'Prestataire pour les professionnels · Vaucluse', h1: c.h1, lead: c.lead, photoKey: c.photo, alt: 'Gestion administrative externalisée – ' + c.name, cta: 'Parler de mon besoin', service: 'Autre / besoin sur mesure' })}
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
   <div class="grid md:grid-cols-3 gap-6">
     ${c.local.map(([t, d]) => `<div class="reveal card p-8"><h2 class="font-serif text-2xl text-forest font-semibold">${t}</h2><p class="mt-3 text-ink/75 leading-relaxed">${d}</p></div>`).join('\n    ')}
@@ -961,7 +989,8 @@ ${ctaBlock('Parlons de votre entreprise', 'Premier échange gratuit et sans enga
     ld: [breadcrumbLd(crumbs), faqLd(c.faq), {
       '@context': 'https://schema.org', '@type': 'Service', name: 'Secrétariat indépendant et gestion administrative externalisée ' + c.prep + ' ' + c.name,
       serviceType: 'Gestion administrative externalisée', provider: { '@id': BUSINESS_ID }, url: abs(c.path),
-      areaServed: { '@type': 'City', name: c.name, containedInPlace: { '@type': 'AdministrativeArea', name: 'Vaucluse' } }
+      audience: { '@type': 'BusinessAudience', audienceType: 'TPE, PME, artisans et entreprises du BTP' },
+      areaServed: c.region ? { '@type': 'AdministrativeArea', name: 'Vaucluse' } : { '@type': 'City', name: c.name, containedInPlace: { '@type': 'AdministrativeArea', name: 'Vaucluse' } }
     }] }), { priority: '0.8' });
 });
 
